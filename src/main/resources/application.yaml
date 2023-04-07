@@ -1,0 +1,11 @@
+spring:
+  liquibase:
+    change-log: classpath:/liquibase-changelog.xml
+  datasource:
+    url: jdbc:mysql://localhost:3307/mechanic
+    username: user
+    password: password
+  jpa:
+    hibernate.ddl-auto: validate
+    generate-ddl: true
+    show-sql: true
