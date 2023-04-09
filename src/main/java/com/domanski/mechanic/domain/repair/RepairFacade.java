@@ -62,14 +62,13 @@ public class RepairFacade {
                 repairPartRepository.save(repairPart);
             } else {
                 Part part = partRepository.findById(partRequest.partId())
-                        .orElseThrow(() -> new PartNoFoundException("Part with partId %d no found".formatted(partRequest.partId())));
+                        .orElseThrow(() -> new PartNoFoundException("Part with id %d no found".formatted(partRequest.partId())));
                 RepairPart savedRepairPart = repairPartRepository.save(RepairPart.builder()
                         .part(part)
                         .repair(repair)
                         .quantity(partRequest.quantity())
                         .build());
-                List<RepairPart> newRepairParts = new ArrayList<>();
-                newRepairParts.addAll(repair.getRepairParts());
+                List<RepairPart> newRepairParts = new ArrayList<>(repair.getRepairParts());
                 newRepairParts.add(savedRepairPart);
                 repair.setRepairParts(newRepairParts);
             }
@@ -90,8 +89,7 @@ public class RepairFacade {
         }
 
         Repair savedRepair = repairRepository.save(repair);
-
-        return RepairMapper.mapFromRepair(repair);
+        return RepairMapper.mapFromRepair(savedRepair);
     }
 
     public List<RepairDto> getUserRepairs(Long userId) {

@@ -4,6 +4,7 @@ import com.domanski.mechanic.domain.repair.dto.CreateRepairRequest;
 import com.domanski.mechanic.domain.repair.dto.PartRequest;
 import com.domanski.mechanic.domain.repair.dto.RepairDto;
 import com.domanski.mechanic.domain.repair.dto.PartsAndWorkTimeRequest;
+import com.domanski.mechanic.domain.repair.error.PartNoFoundException;
 import com.domanski.mechanic.domain.repair.error.RepairNoFoundException;
 import com.domanski.mechanic.domain.repair.repository.PartRepository;
 import com.domanski.mechanic.domain.repair.repository.RepairPartRepository;
@@ -215,6 +216,23 @@ class RepairFacadeTest {
     }
 
     @Test
+    public void should_throw_part_no_found_exception_when_try_to_use_no_existing_part() {
+        //given
+        createRepair();
+        Long repairId = 1L;
+        PartsAndWorkTimeRequest partAndWorkRequest = PartsAndWorkTimeRequest.builder()
+                .parts(List.of(
+                        PartRequest.builder()
+                                .partId(1L)
+                                .quantity(10L)
+                                .build()))
+                .workiTime(2.0)
+                .build();
+        //when && then
+        assertThrows(PartNoFoundException.class,() -> repairFacade.doRepairWithPartsAndWorkTime(repairId, partAndWorkRequest),"Part with id 1 no found");
+    }
+
+    @Test
     void should_get_all_repairs_for_user() {
         //given
         Long searchedUserId = 1L;
@@ -339,8 +357,8 @@ class RepairFacadeTest {
         repairRepository.save(repair6);
     }
 
-    private RepairDto createRepair() {
-        return repairFacade.createRepair(CreateRepairRequest.builder()
+    private void createRepair() {
+        repairFacade.createRepair(CreateRepairRequest.builder()
                 .description("description 1")
                 .userId(1L)
                 .build());
