@@ -1,4 +1,4 @@
-package com.domanski.mechanic.domain.repair;
+package com.domanski.mechanic.domain.repair.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,26 +10,20 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import java.math.BigDecimal;
 
 @Entity
-@Table(name = "repairs_parts")
+@Table(name = "parts")
 @Getter
-@Setter
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor
-public class RepairPart {
+@NoArgsConstructor
+@Setter
+public class Part {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @ManyToOne
-    @JoinColumn(name = "repair_id")
-    private Repair repair;
-    @ManyToOne
-    @JoinColumn(name = "part_id")
-    private Part part;
-    private Long quantity;
+    private String name;
+    private BigDecimal price;
 }

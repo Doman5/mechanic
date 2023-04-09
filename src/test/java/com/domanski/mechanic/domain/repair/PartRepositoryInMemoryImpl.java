@@ -1,5 +1,6 @@
 package com.domanski.mechanic.domain.repair;
 
+import com.domanski.mechanic.domain.repair.model.Part;
 import com.domanski.mechanic.domain.repair.repository.PartRepository;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
@@ -14,7 +15,7 @@ import java.util.function.Function;
 
 public class PartRepositoryInMemoryImpl implements PartRepository {
 
-    HashMap<Long, Part> database = new HashMap<>();
+    final HashMap<Long, Part> database = new HashMap<>();
     Long indexCounter = 1L;
 
     @Override

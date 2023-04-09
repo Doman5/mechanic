@@ -1,12 +1,14 @@
-package com.domanski.mechanic.domain.repair;
+package com.domanski.mechanic.domain.repair.utils;
 
 import com.domanski.mechanic.domain.repair.dto.PartResponse;
-import com.domanski.mechanic.domain.repair.dto.RepairDto;
+import com.domanski.mechanic.domain.repair.dto.RepairResponse;
+import com.domanski.mechanic.domain.repair.model.Repair;
+import com.domanski.mechanic.domain.repair.model.RepairPart;
 
 public class RepairMapper {
 
-    public static RepairDto mapFromRepair(Repair repair) {
-        return RepairDto.builder()
+    public static RepairResponse mapFromRepair(Repair repair) {
+        return RepairResponse.builder()
                 .id(repair.getId())
                 .description(repair.getDescription())
                 .date(repair.getDate())

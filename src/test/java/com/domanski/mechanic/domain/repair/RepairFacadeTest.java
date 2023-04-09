@@ -2,13 +2,18 @@ package com.domanski.mechanic.domain.repair;
 
 import com.domanski.mechanic.domain.repair.dto.CreateRepairRequest;
 import com.domanski.mechanic.domain.repair.dto.PartRequest;
-import com.domanski.mechanic.domain.repair.dto.RepairDto;
+import com.domanski.mechanic.domain.repair.dto.RepairResponse;
 import com.domanski.mechanic.domain.repair.dto.PartsAndWorkTimeRequest;
 import com.domanski.mechanic.domain.repair.error.PartNoFoundException;
 import com.domanski.mechanic.domain.repair.error.RepairNoFoundException;
+import com.domanski.mechanic.domain.repair.model.Part;
+import com.domanski.mechanic.domain.repair.model.Repair;
+import com.domanski.mechanic.domain.repair.model.RepairStatus;
 import com.domanski.mechanic.domain.repair.repository.PartRepository;
 import com.domanski.mechanic.domain.repair.repository.RepairPartRepository;
 import com.domanski.mechanic.domain.repair.repository.RepairRepository;
+import com.domanski.mechanic.domain.repair.utils.RepairCostCalculator;
+import com.domanski.mechanic.domain.repair.utils.RepairUsedPartManager;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -24,11 +29,13 @@ class RepairFacadeTest {
     private final RepairRepository repairRepository = new RepairRepositoryInMemoryImpl();
     private final PartRepository partRepository = new PartRepositoryInMemoryImpl();
     private final RepairPartRepository repairPartRepository = new RepairPartRepositoryInMemoryImpl();
+    private final RepairCostCalculator repairCostCalculator = new RepairCostCalculator(100);
+    private final RepairUsedPartManager repairUsedPartManager = new RepairUsedPartManager(repairPartRepository, partRepository);
     private final RepairFacade repairFacade = new RepairFacade(
             repairRepository,
-            partRepository,
-            repairPartRepository,
-            100
+            repairCostCalculator,
+            repairUsedPartManager
+
     );
 
     @Test
@@ -37,7 +44,7 @@ class RepairFacadeTest {
         Long searchingRepairId = 1L;
         saveOneRepair();
         //when
-        RepairDto repairResult = repairFacade.getRepair(searchingRepairId);
+        RepairResponse repairResult = repairFacade.getRepair(searchingRepairId);
         //then
         assertThat(repairResult.id()).isEqualTo(1L);
         assertThat(repairResult.description()).isEqualTo("Simple description");
@@ -60,7 +67,7 @@ class RepairFacadeTest {
                 .userId(1L)
                 .build();
         //when
-        RepairDto repairResult = repairFacade.createRepair(createRepairRequest);
+        RepairResponse repairResult = repairFacade.createRepair(createRepairRequest);
         //then
         assertAll(
                 () -> assertThat(repairResult.id()).isEqualTo(1L),
@@ -103,7 +110,7 @@ class RepairFacadeTest {
                 .workiTime(4.0)
                 .build();
         //when
-        RepairDto repairAfterWork = repairFacade.doRepairWithPartsAndWorkTime(repairId, workRepairRequest);
+        RepairResponse repairAfterWork = repairFacade.doRepairWithPartsAndWorkTime(repairId, workRepairRequest);
         //then
         assertAll(
                 () -> assertThat(repairAfterWork.workTime()).isEqualTo(4),
@@ -120,14 +127,14 @@ class RepairFacadeTest {
         createRepair();
 
         partRepository.save(Part.builder()
-                        .id(1L)
-                        .name("part 1")
-                        .price(BigDecimal.valueOf(100))
+                .id(1L)
+                .name("part 1")
+                .price(BigDecimal.valueOf(100))
                 .build());
         partRepository.save(Part.builder()
-                        .id(2L)
-                        .name("part 2")
-                        .price(BigDecimal.valueOf(10))
+                .id(2L)
+                .name("part 2")
+                .price(BigDecimal.valueOf(10))
                 .build());
 
         PartsAndWorkTimeRequest firstPartsAndWorkTimeRequest = PartsAndWorkTimeRequest.builder()
@@ -153,7 +160,7 @@ class RepairFacadeTest {
                 .workiTime(1.0)
                 .build();
         //when
-        RepairDto repairResult = repairFacade.doRepairWithPartsAndWorkTime(repairId, secondPartsAndWorkTimeRequest);
+        RepairResponse repairResult = repairFacade.doRepairWithPartsAndWorkTime(repairId, secondPartsAndWorkTimeRequest);
         //then
         assertAll(
                 () -> assertThat(repairResult.parts().get(0).quantity()).isEqualTo(2),
@@ -207,7 +214,7 @@ class RepairFacadeTest {
                 .workiTime(1.0)
                 .build();
         //when
-        RepairDto repairResult = repairFacade.doRepairWithPartsAndWorkTime(repairId, secondPartsAndWorkTimeRequest);
+        RepairResponse repairResult = repairFacade.doRepairWithPartsAndWorkTime(repairId, secondPartsAndWorkTimeRequest);
         //then
         assertAll(
                 () -> assertThat(repairResult.parts().size()).isEqualTo(3),
@@ -229,7 +236,7 @@ class RepairFacadeTest {
                 .workiTime(2.0)
                 .build();
         //when && then
-        assertThrows(PartNoFoundException.class,() -> repairFacade.doRepairWithPartsAndWorkTime(repairId, partAndWorkRequest),"Part with id 1 no found");
+        assertThrows(PartNoFoundException.class, () -> repairFacade.doRepairWithPartsAndWorkTime(repairId, partAndWorkRequest), "Part with id 1 no found");
     }
 
     @Test
@@ -238,7 +245,7 @@ class RepairFacadeTest {
         Long searchedUserId = 1L;
         saveFourRepairsInDatabase();
         //when
-        List<RepairDto> userRepairsResult = repairFacade.getUserRepairs(searchedUserId);
+        List<RepairResponse> userRepairsResult = repairFacade.getUserRepairs(searchedUserId);
         //then
         assertAll(
                 () -> assertThat(userRepairsResult).hasSize(2),
@@ -252,7 +259,7 @@ class RepairFacadeTest {
         //given
         Long searchedUserId = 1L;
         //when
-        List<RepairDto> userRepairsResult = repairFacade.getUserRepairs(searchedUserId);
+        List<RepairResponse> userRepairsResult = repairFacade.getUserRepairs(searchedUserId);
         //then
         assertThat(userRepairsResult).isEmpty();
     }

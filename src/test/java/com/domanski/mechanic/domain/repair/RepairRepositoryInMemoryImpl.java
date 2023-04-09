@@ -1,5 +1,6 @@
 package com.domanski.mechanic.domain.repair;
 
+import com.domanski.mechanic.domain.repair.model.Repair;
 import com.domanski.mechanic.domain.repair.repository.RepairRepository;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
@@ -16,14 +17,14 @@ import java.util.function.Function;
 
 public class RepairRepositoryInMemoryImpl implements RepairRepository {
 
-    private Map<Long, Repair> database = new HashMap<>();
+    private final Map<Long, Repair> database = new HashMap<>();
     private Long indexCounter = 1L;
 
 
     @Override
     public List<Repair> findAllByUserId(Long userId) {
         return database.values().stream()
-                .filter(repair -> repair.getUserId() == userId)
+                .filter(repair -> repair.getUserId().equals(userId))
                 .toList();
     }
 

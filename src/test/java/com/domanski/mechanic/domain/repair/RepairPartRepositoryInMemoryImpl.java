@@ -1,5 +1,6 @@
 package com.domanski.mechanic.domain.repair;
 
+import com.domanski.mechanic.domain.repair.model.RepairPart;
 import com.domanski.mechanic.domain.repair.repository.RepairPartRepository;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
