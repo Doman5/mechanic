@@ -9,3 +9,7 @@ spring:
     hibernate.ddl-auto: validate
     generate-ddl: true
     show-sql: true
+
+app:
+  repair:
+    priceForOneWorkHour: 100.00
