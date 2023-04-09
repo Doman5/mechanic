@@ -2,14 +2,12 @@ package com.domanski.mechanic.domain.repair.utils;
 
 import com.domanski.mechanic.domain.repair.model.Repair;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.math.BigDecimal;
 
 @AllArgsConstructor
 public class RepairCostCalculator {
 
-    @Value("${app.repair.priceForOneWorkHour}")
     private final double priceForOneWorkHour;
 
     public BigDecimal calculatePriceForRepair(Repair repair) {
