@@ -13,3 +13,4 @@ spring:
 app:
   repair:
     priceForOneWorkHour: 100.00
+    maximumRepairPerDay: 3

@@ -32,7 +32,7 @@ public class RepairRepositoryInMemoryImpl implements RepairRepository {
     @Override
     public List<Repair> findAllByDate(LocalDate date) {
         return database.values().stream()
-                .filter(repair -> repair.getDate().isEqual(date))
+                .filter(repair -> repair.getDate() != null && repair.getDate().isEqual(date))
                 .toList();
     }
 
@@ -45,7 +45,8 @@ public class RepairRepositoryInMemoryImpl implements RepairRepository {
 
     @Override
     public List<Repair> findAll() {
-        return null;
+        return database.values().stream()
+                .toList();
     }
 
     @Override
@@ -96,6 +97,9 @@ public class RepairRepositoryInMemoryImpl implements RepairRepository {
     @Override
     public <S extends Repair> S save(S repair) {
         database.put(indexCounter, repair);
+        if(repair.getId() != null) {
+            return repair;
+        }
         repair.setId(indexCounter);
         indexCounter++;
         return repair;

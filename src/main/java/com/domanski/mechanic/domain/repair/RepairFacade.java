@@ -2,22 +2,24 @@ package com.domanski.mechanic.domain.repair;
 
 import com.domanski.mechanic.domain.repair.dto.CreateRepairRequest;
 import com.domanski.mechanic.domain.repair.dto.PartsAndWorkTimeRequest;
+import com.domanski.mechanic.domain.repair.dto.RepairReportResponse;
 import com.domanski.mechanic.domain.repair.dto.RepairResponse;
 import com.domanski.mechanic.domain.repair.error.RepairNoFoundException;
 import com.domanski.mechanic.domain.repair.model.Repair;
 import com.domanski.mechanic.domain.repair.model.RepairStatus;
 import com.domanski.mechanic.domain.repair.repository.RepairRepository;
 import com.domanski.mechanic.domain.repair.utils.RepairCostCalculator;
+import com.domanski.mechanic.domain.repair.utils.RepairDateGenerator;
 import com.domanski.mechanic.domain.repair.utils.RepairMapper;
 import com.domanski.mechanic.domain.repair.utils.RepairUsedPartManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.Collections;
 import java.util.List;
 
+import static com.domanski.mechanic.domain.repair.utils.RepairCreateUtils.createNewRepair;
+import static com.domanski.mechanic.domain.repair.utils.RepairCreateUtils.createNewRepairReportResponse;
 import static com.domanski.mechanic.domain.repair.utils.RepairStatusChanger.changeRepairStatusToWorkInProgressIfWasNotChangedBefore;
 
 @RequiredArgsConstructor
@@ -27,6 +29,7 @@ public class RepairFacade {
     private final RepairRepository repairRepository;
     private final RepairCostCalculator repairCostCalculator;
     private final RepairUsedPartManager repairUsedPartManager;
+    private final RepairDateGenerator repairDateGenerator;
 
     public RepairResponse getRepair(Long id) {
         return repairRepository.findById(id)
@@ -34,10 +37,10 @@ public class RepairFacade {
                 .orElseThrow(() -> new RepairNoFoundException("Repair with partId %d no found".formatted(id)));
     }
 
-    public RepairResponse createRepair(CreateRepairRequest createRepairRequest) {
-        Repair repairToSave = createNewRepair(createRepairRequest);
-        Repair savedRepair = repairRepository.save(repairToSave);
-        return RepairMapper.mapFromRepair(savedRepair);
+    public List<RepairResponse> getAllRepairs() {
+        return repairRepository.findAll().stream()
+                .map(RepairMapper::mapFromRepair)
+                .toList();
     }
 
     public RepairResponse doRepairWithPartsAndWorkTime(Long id, PartsAndWorkTimeRequest partsAndWorkTimeRequest) {
@@ -58,25 +61,17 @@ public class RepairFacade {
                 .toList();
     }
 
-    public long checkRepairQuantityForDate(LocalDate date) {
-        return repairRepository.findAllByDate(date).size();
+    public RepairReportResponse reportRepair(CreateRepairRequest repair) {
+        Repair repairToSave = createNewRepair(repair);
+        Repair savedRepair = repairRepository.save(repairToSave);
+        return createNewRepairReportResponse(savedRepair);
     }
 
-    private static Repair createNewRepair(CreateRepairRequest createRepairRequest) {
-        return Repair.builder()
-                .description(createRepairRequest.description())
-                .userId(createRepairRequest.userId())
-                .repairStatus(RepairStatus.DATE_NOT_SPECIFIED)
-                .workTime(0.0)
-                .repairParts(Collections.emptyList())
-                .repairCost(BigDecimal.ZERO)
-                .build();
-    }
+    public void generateRepairsDates() {
+        log.info("start generate date for repairs");
+        List<Repair> repairsWithoutDate = repairRepository.findAllByRepairStatus(RepairStatus.DATE_NOT_SPECIFIED);
+        repairsWithoutDate
+                .forEach(repairDateGenerator::generateDateAndUpdateRepairInformation);
 
-    public List<RepairResponse> getAllRepairWithUndefinedDate() {
-        List<Repair> repairs = repairRepository.findAllByRepairStatus(RepairStatus.DATE_NOT_SPECIFIED);
-        return repairs.stream()
-                .map(RepairMapper::mapFromRepair)
-                .toList();
     }
 }
