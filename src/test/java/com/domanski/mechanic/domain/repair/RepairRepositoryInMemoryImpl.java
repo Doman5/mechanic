@@ -1,6 +1,7 @@
 package com.domanski.mechanic.domain.repair;
 
 import com.domanski.mechanic.domain.repair.model.Repair;
+import com.domanski.mechanic.domain.repair.model.RepairStatus;
 import com.domanski.mechanic.domain.repair.repository.RepairRepository;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
@@ -32,6 +33,13 @@ public class RepairRepositoryInMemoryImpl implements RepairRepository {
     public List<Repair> findAllByDate(LocalDate date) {
         return database.values().stream()
                 .filter(repair -> repair.getDate().isEqual(date))
+                .toList();
+    }
+
+    @Override
+    public List<Repair> findAllByRepairStatus(RepairStatus status) {
+        return database.values().stream()
+                .filter(repair -> repair.getRepairStatus().equals(status))
                 .toList();
     }
 

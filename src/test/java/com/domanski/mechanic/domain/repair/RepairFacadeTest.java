@@ -275,6 +275,18 @@ class RepairFacadeTest {
         assertThat(result).isEqualTo(3);
     }
 
+    @Test
+    public void should_return_all_repairs_where_date_was_not_undefined() {
+        //given
+        saveFourRepairsInDatabase();
+        //when
+        List<RepairResponse> repairs = repairFacade.getAllRepairWithUndefinedDate();
+        //then
+        assertThat(repairs.size()).isEqualTo(2);
+        assertThat(repairs.get(0).repairStatus()).isEqualTo(RepairStatus.DATE_NOT_SPECIFIED);
+    }
+
+
     private void saveOneRepair() {
         Repair repair = Repair.builder()
                 .userId(1L)

@@ -73,4 +73,10 @@ public class RepairFacade {
                 .build();
     }
 
+    public List<RepairResponse> getAllRepairWithUndefinedDate() {
+        List<Repair> repairs = repairRepository.findAllByRepairStatus(RepairStatus.DATE_NOT_SPECIFIED);
+        return repairs.stream()
+                .map(RepairMapper::mapFromRepair)
+                .toList();
+    }
 }
