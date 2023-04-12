@@ -1,0 +1,8 @@
+
+app:
+  repair:
+    priceForOneWorkHour: 100.00
+    maximumRepairPerDay: 1
+
+scheduling:
+  enabled: false
