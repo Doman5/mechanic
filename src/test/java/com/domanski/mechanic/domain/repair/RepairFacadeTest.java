@@ -1,15 +1,16 @@
 package com.domanski.mechanic.domain.repair;
 
+import com.domanski.mechanic.domain.part.PartRepositoryInMemoryImpl;
 import com.domanski.mechanic.domain.repair.dto.CreateRepairRequest;
-import com.domanski.mechanic.domain.repair.dto.PartRequest;
+import com.domanski.mechanic.domain.repair.dto.UsedPartRequest;
 import com.domanski.mechanic.domain.repair.dto.PartsAndWorkTimeRequest;
 import com.domanski.mechanic.domain.repair.dto.RepairReportResponse;
 import com.domanski.mechanic.domain.repair.dto.RepairResponse;
 import com.domanski.mechanic.domain.repair.error.PartNoFoundException;
 import com.domanski.mechanic.domain.repair.error.RepairNoFoundException;
-import com.domanski.mechanic.domain.repair.model.Part;
+import com.domanski.mechanic.domain.common.Part;
 import com.domanski.mechanic.domain.repair.model.RepairStatus;
-import com.domanski.mechanic.domain.repair.repository.PartRepository;
+import com.domanski.mechanic.domain.common.PartRepository;
 import com.domanski.mechanic.domain.repair.repository.RepairPartRepository;
 import com.domanski.mechanic.domain.repair.repository.RepairRepository;
 import com.domanski.mechanic.domain.repair.utils.RepairCostCalculator;
@@ -156,7 +157,7 @@ class RepairFacadeTest implements SamplePartAndWorkTimeRequest {
         Long repairId = 1L;
         PartsAndWorkTimeRequest partAndWorkRequest = PartsAndWorkTimeRequest.builder()
                 .parts(List.of(
-                        PartRequest.builder()
+                        UsedPartRequest.builder()
                                 .partId(1L)
                                 .quantity(10L)
                                 .build()))

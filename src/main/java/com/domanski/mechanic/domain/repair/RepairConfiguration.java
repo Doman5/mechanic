@@ -1,6 +1,6 @@
 package com.domanski.mechanic.domain.repair;
 
-import com.domanski.mechanic.domain.repair.repository.PartRepository;
+import com.domanski.mechanic.domain.common.PartRepository;
 import com.domanski.mechanic.domain.repair.repository.RepairPartRepository;
 import com.domanski.mechanic.domain.repair.repository.RepairRepository;
 import com.domanski.mechanic.domain.repair.utils.RepairCostCalculator;
@@ -15,11 +15,6 @@ import java.time.LocalDate;
 
 @Configuration
 public class RepairConfiguration {
-
-    @Bean
-    public Clock clock() {
-        return Clock.systemDefaultZone();
-    }
 
     @Bean
     public RepairCostCalculator repairCostCalculator(@Value("${app.repair.priceForOneWorkHour}") double priceForOneWorkHour) {

@@ -1,6 +1,6 @@
 package com.domanski.mechanic.domain.repair;
 
-import com.domanski.mechanic.domain.repair.dto.PartRequest;
+import com.domanski.mechanic.domain.repair.dto.UsedPartRequest;
 import com.domanski.mechanic.domain.repair.dto.PartsAndWorkTimeRequest;
 
 import java.util.List;
@@ -10,11 +10,11 @@ public interface SamplePartAndWorkTimeRequest {
     default PartsAndWorkTimeRequest createPartsAndWorkTimeRequest() {
         return PartsAndWorkTimeRequest.builder()
                 .parts(List.of(
-                        PartRequest.builder()
+                        UsedPartRequest.builder()
                                 .partId(1L)
                                 .quantity(1L)
                                 .build(),
-                        PartRequest.builder()
+                        UsedPartRequest.builder()
                                 .partId(2L)
                                 .quantity(10L)
                                 .build()))
@@ -25,7 +25,7 @@ public interface SamplePartAndWorkTimeRequest {
    default PartsAndWorkTimeRequest createPartsAndWorkTimeRequestWithEarlierUsedPart() {
         return PartsAndWorkTimeRequest.builder()
                 .parts(List.of(
-                        PartRequest.builder()
+                        UsedPartRequest.builder()
                                 .partId(1L)
                                 .quantity(1L)
                                 .build()))
@@ -37,7 +37,7 @@ public interface SamplePartAndWorkTimeRequest {
     default PartsAndWorkTimeRequest createPartsAndWorkTimeRequestWithNeverUsedPart() {
         return PartsAndWorkTimeRequest.builder()
                 .parts(List.of(
-                        PartRequest.builder()
+                        UsedPartRequest.builder()
                                 .partId(3L)
                                 .quantity(1L)
                                 .build()))

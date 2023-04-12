@@ -1,4 +1,4 @@
-package com.domanski.mechanic.domain.repair.model;
+package com.domanski.mechanic.domain.common;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

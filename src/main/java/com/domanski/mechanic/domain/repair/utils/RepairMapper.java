@@ -1,6 +1,6 @@
 package com.domanski.mechanic.domain.repair.utils;
 
-import com.domanski.mechanic.domain.repair.dto.PartResponse;
+import com.domanski.mechanic.domain.repair.dto.UsedPartResponse;
 import com.domanski.mechanic.domain.repair.dto.RepairResponse;
 import com.domanski.mechanic.domain.repair.model.Repair;
 import com.domanski.mechanic.domain.repair.model.RepairPart;
@@ -21,8 +21,8 @@ public class RepairMapper {
                 .build();
     }
 
-    private static PartResponse mapFromRepairPart(RepairPart repairPart) {
-        return PartResponse.builder()
+    private static UsedPartResponse mapFromRepairPart(RepairPart repairPart) {
+        return UsedPartResponse.builder()
                 .name(repairPart.getPart().getName())
                 .price(repairPart.getPart().getPrice())
                 .quantity(repairPart.getQuantity())

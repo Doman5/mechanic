@@ -1,5 +1,6 @@
 package com.domanski.mechanic.domain.repair.model;
 
+import com.domanski.mechanic.domain.common.Part;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

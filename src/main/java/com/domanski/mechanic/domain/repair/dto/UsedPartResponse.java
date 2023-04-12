@@ -5,7 +5,7 @@ import lombok.Builder;
 import java.math.BigDecimal;
 
 @Builder
-public record PartResponse(
+public record UsedPartResponse(
         String name,
         BigDecimal price,
         Long quantity) {

@@ -1,13 +1,13 @@
 package com.domanski.mechanic.domain.repair.utils;
 
-import com.domanski.mechanic.domain.repair.dto.PartRequest;
+import com.domanski.mechanic.domain.repair.dto.UsedPartRequest;
 import com.domanski.mechanic.domain.repair.dto.PartsAndWorkTimeRequest;
 import com.domanski.mechanic.domain.repair.error.PartNoFoundException;
 import com.domanski.mechanic.domain.repair.error.RepairPartNoFoundException;
-import com.domanski.mechanic.domain.repair.model.Part;
+import com.domanski.mechanic.domain.common.Part;
 import com.domanski.mechanic.domain.repair.model.Repair;
 import com.domanski.mechanic.domain.repair.model.RepairPart;
-import com.domanski.mechanic.domain.repair.repository.PartRepository;
+import com.domanski.mechanic.domain.common.PartRepository;
 import com.domanski.mechanic.domain.repair.repository.RepairPartRepository;
 import lombok.AllArgsConstructor;
 
@@ -21,12 +21,12 @@ public class RepairUsedPartManager {
     private final PartRepository partRepository;
 
     public void addPartsToRepair(Repair repair, PartsAndWorkTimeRequest partsAndWorkTimeRequest) {
-        List<PartRequest> partsFromRequest = partsAndWorkTimeRequest.parts();
+        List<UsedPartRequest> partsFromRequest = partsAndWorkTimeRequest.parts();
         changeQuantityToPartsWhichWereUsedBefore(partsFromRequest);
         addPartsWhichWereNotUserBefore(repair, partsFromRequest);
     }
 
-    private void addPartsWhichWereNotUserBefore(Repair repair, List<PartRequest> partsFromRequest) {
+    private void addPartsWhichWereNotUserBefore(Repair repair, List<UsedPartRequest> partsFromRequest) {
         partsFromRequest.stream()
                 .filter(partRequest -> !repairPartRepository.existsById(partRequest.partId()))
                 .forEach(partRequest -> {
@@ -43,7 +43,7 @@ public class RepairUsedPartManager {
                 });
     }
 
-    private void changeQuantityToPartsWhichWereUsedBefore(List<PartRequest> partsFromRequest) {
+    private void changeQuantityToPartsWhichWereUsedBefore(List<UsedPartRequest> partsFromRequest) {
         partsFromRequest.stream()
                 .filter(partRequest -> repairPartRepository.existsById(partRequest.partId()))
                 .forEach(partRequest -> {

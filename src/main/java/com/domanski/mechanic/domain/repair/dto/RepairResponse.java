@@ -11,7 +11,7 @@ import java.util.List;
 public record RepairResponse(Long id,
                              String description,
                              LocalDate date,
-                             List<PartResponse> parts,
+                             List<UsedPartResponse> parts,
                              Double workTime,
                              BigDecimal repairCost,
                              RepairStatus repairStatus) {
