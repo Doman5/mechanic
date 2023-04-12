@@ -1,4 +1,4 @@
-package com.domanski.mechanic.infrastucture.repair;
+package com.domanski.mechanic.infrastucture.repair.controller;
 
 import com.domanski.mechanic.domain.repair.RepairFacade;
 import com.domanski.mechanic.domain.repair.dto.PartsAndWorkTimeRequest;
