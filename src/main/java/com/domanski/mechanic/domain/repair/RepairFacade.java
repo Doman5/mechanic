@@ -34,7 +34,7 @@ public class RepairFacade {
     public RepairResponse getRepair(Long id) {
         return repairRepository.findById(id)
                 .map(RepairMapper::mapFromRepair)
-                .orElseThrow(() -> new RepairNoFoundException("Repair with partId %d no found".formatted(id)));
+                .orElseThrow(() -> new RepairNoFoundException("Repair with id %d no found".formatted(id)));
     }
 
     public List<RepairResponse> getAllRepairs() {
