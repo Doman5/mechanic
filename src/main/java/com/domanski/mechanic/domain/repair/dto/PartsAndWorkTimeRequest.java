@@ -10,7 +10,7 @@ import java.util.List;
 @Builder
 public record PartsAndWorkTimeRequest(
         @NotEmpty
-        List<PartRequest> parts,
+        List<UsedPartRequest> parts,
         @NotNull
         @DecimalMin(value = "0.1")
         Double workiTime) {

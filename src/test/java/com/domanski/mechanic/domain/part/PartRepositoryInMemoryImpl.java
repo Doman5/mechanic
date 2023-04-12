@@ -1,7 +1,7 @@
-package com.domanski.mechanic.domain.repair;
+package com.domanski.mechanic.domain.part;
 
-import com.domanski.mechanic.domain.repair.model.Part;
-import com.domanski.mechanic.domain.repair.repository.PartRepository;
+import com.domanski.mechanic.domain.common.Part;
+import com.domanski.mechanic.domain.common.PartRepository;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -20,7 +20,9 @@ public class PartRepositoryInMemoryImpl implements PartRepository {
 
     @Override
     public List<Part> findAll() {
-        return null;
+        return database.values()
+                .stream()
+                .toList();
     }
 
     @Override
@@ -44,8 +46,8 @@ public class PartRepositoryInMemoryImpl implements PartRepository {
     }
 
     @Override
-    public void deleteById(Long aLong) {
-
+    public void deleteById(Long id) {
+        database.remove(id);
     }
 
     @Override
@@ -54,8 +56,7 @@ public class PartRepositoryInMemoryImpl implements PartRepository {
     }
 
     @Override
-    public void deleteAllById(Iterable<? extends Long> longs) {
-
+    public void deleteAllById(Iterable<? extends Long> id) {
     }
 
     @Override
@@ -70,6 +71,9 @@ public class PartRepositoryInMemoryImpl implements PartRepository {
 
     @Override
     public <S extends Part> S save(S part) {
+        if(part.getId() != null && database.get(part.getId()) != null) {
+            return part;
+        }
         database.put(indexCounter, part);
         part.setId(indexCounter);
         indexCounter++;

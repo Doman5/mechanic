@@ -1,6 +1,5 @@
-package com.domanski.mechanic.domain.repair.repository;
+package com.domanski.mechanic.domain.common;
 
-import com.domanski.mechanic.domain.repair.model.Part;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
