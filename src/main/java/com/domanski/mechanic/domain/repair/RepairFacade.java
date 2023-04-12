@@ -67,7 +67,7 @@ public class RepairFacade {
         return createNewRepairReportResponse(savedRepair);
     }
 
-    public void generateRepairsDates() {
+    public void generateAndSetRepairsDates() {
         log.info("start generate date for repairs");
         List<Repair> repairsWithoutDate = repairRepository.findAllByRepairStatus(RepairStatus.DATE_NOT_SPECIFIED);
         repairsWithoutDate

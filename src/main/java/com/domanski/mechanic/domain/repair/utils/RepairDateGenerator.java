@@ -17,7 +17,6 @@ public class RepairDateGenerator {
     private LocalDate date;
 
     public void generateDateAndUpdateRepairInformation(Repair repair) {
-        log.info("Starting setting date for repair with id %d".formatted(repair.getId()));
         date = findAvailableDate(date);
         repair.setDate(date);
         repair.setRepairStatus(RepairStatus.AWAITING);

@@ -189,7 +189,7 @@ class RepairFacadeTest implements SamplePartAndWorkTimeRequest {
         //given
         reportRepairsManyTimes(4);
         //when
-        repairFacade.generateRepairsDates();
+        repairFacade.generateAndSetRepairsDates();
         //then
         List<RepairResponse> allRepairs = repairFacade.getAllRepairs();
         assertAll(
@@ -205,7 +205,7 @@ class RepairFacadeTest implements SamplePartAndWorkTimeRequest {
         //given
         reportRepairsManyTimes(10);
         //when
-        repairFacade.generateRepairsDates();
+        repairFacade.generateAndSetRepairsDates();
         //then
         List<RepairResponse> allRepairs = repairFacade.getAllRepairs();
         assertAll(
