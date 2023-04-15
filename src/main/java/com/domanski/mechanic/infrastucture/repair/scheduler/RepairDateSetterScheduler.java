@@ -4,10 +4,12 @@ import com.domanski.mechanic.domain.repair.RepairFacade;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 
 
 @AllArgsConstructor
 @Slf4j
+@Component
 public class RepairDateSetterScheduler {
 
     public static final String START_GENERATE_DATES = "Start generate dates for repairs";
