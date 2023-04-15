@@ -2,6 +2,8 @@ package com.domanski.mechanic.domain.part;
 
 import com.domanski.mechanic.domain.common.Part;
 import com.domanski.mechanic.domain.common.PartRepository;
+import com.domanski.mechanic.domain.part.dto.PartRequest;
+import com.domanski.mechanic.domain.part.dto.PartResponse;
 import com.domanski.mechanic.domain.repair.error.PartNoFoundException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
