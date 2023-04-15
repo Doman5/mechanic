@@ -1,6 +1,8 @@
 package com.domanski.mechanic.domain.part;
 
 import com.domanski.mechanic.domain.common.PartRepository;
+import com.domanski.mechanic.domain.part.dto.PartRequest;
+import com.domanski.mechanic.domain.part.dto.PartResponse;
 import com.domanski.mechanic.domain.repair.error.PartNoFoundException;
 import org.junit.jupiter.api.Test;
 

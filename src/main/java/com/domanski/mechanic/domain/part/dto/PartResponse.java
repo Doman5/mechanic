@@ -1,4 +1,4 @@
-package com.domanski.mechanic.domain.part;
+package com.domanski.mechanic.domain.part.dto;
 
 import lombok.Builder;
 

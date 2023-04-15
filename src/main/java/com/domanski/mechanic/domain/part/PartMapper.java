@@ -1,6 +1,8 @@
 package com.domanski.mechanic.domain.part;
 
 import com.domanski.mechanic.domain.common.Part;
+import com.domanski.mechanic.domain.part.dto.PartRequest;
+import com.domanski.mechanic.domain.part.dto.PartResponse;
 
 public class PartMapper {
     public static PartResponse mapFromPart(Part part) {
