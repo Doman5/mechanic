@@ -38,7 +38,7 @@ class RepairFacadeTest implements SamplePartAndWorkTimeRequest {
     private final RepairUsedPartManager repairUsedPartManager = new RepairUsedPartManager(repairPartRepository, partRepository);
     private final Long maximumRepairPerDay = 3L;
     private final Clock clock = Clock.fixed(Instant.parse("2022-05-05T12:00:00.00Z"), ZoneOffset.UTC);
-    private final RepairDateGenerator repairDateGenerator = new RepairDateGenerator(repairRepository, maximumRepairPerDay, LocalDate.now(clock));
+    private final RepairDateGenerator repairDateGenerator = new RepairDateGenerator(repairRepository, maximumRepairPerDay, clock);
 
     private final SampleRepairScenarios sampleRepairScenarios = new SampleRepairScenarios(repairRepository);
 
@@ -194,10 +194,10 @@ class RepairFacadeTest implements SamplePartAndWorkTimeRequest {
         //then
         List<RepairResponse> allRepairs = repairFacade.getAllRepairs();
         assertAll(
-                () -> assertThat(allRepairs.get(0).date()).isEqualTo(LocalDate.of(2022,5,5)),
-                () -> assertThat(allRepairs.get(1).date()).isEqualTo(LocalDate.of(2022,5,5)),
-                () -> assertThat(allRepairs.get(2).date()).isEqualTo(LocalDate.of(2022,5,5)),
-                () -> assertThat(allRepairs.get(3).date()).isEqualTo(LocalDate.of(2022,5,6))
+                () -> assertThat(allRepairs.get(0).date()).isEqualTo(LocalDate.of(2022,5,6)),
+                () -> assertThat(allRepairs.get(1).date()).isEqualTo(LocalDate.of(2022,5,6)),
+                () -> assertThat(allRepairs.get(2).date()).isEqualTo(LocalDate.of(2022,5,6)),
+                () -> assertThat(allRepairs.get(3).date()).isEqualTo(LocalDate.of(2022,5,7))
         );
     }
 
@@ -210,16 +210,16 @@ class RepairFacadeTest implements SamplePartAndWorkTimeRequest {
         //then
         List<RepairResponse> allRepairs = repairFacade.getAllRepairs();
         assertAll(
-                () -> assertThat(allRepairs.get(0).date()).isEqualTo(LocalDate.of(2022,5,5)),
-                () -> assertThat(allRepairs.get(1).date()).isEqualTo(LocalDate.of(2022,5,5)),
-                () -> assertThat(allRepairs.get(2).date()).isEqualTo(LocalDate.of(2022,5,5)),
-                () -> assertThat(allRepairs.get(3).date()).isEqualTo(LocalDate.of(2022,5,6)),
-                () -> assertThat(allRepairs.get(4).date()).isEqualTo(LocalDate.of(2022,5,6)),
-                () -> assertThat(allRepairs.get(5).date()).isEqualTo(LocalDate.of(2022,5,6)),
-                () -> assertThat(allRepairs.get(6).date()).isEqualTo(LocalDate.of(2022,5,7)),
-                () -> assertThat(allRepairs.get(7).date()).isEqualTo(LocalDate.of(2022,5,7)),
-                () -> assertThat(allRepairs.get(8).date()).isEqualTo(LocalDate.of(2022,5,7)),
-                () -> assertThat(allRepairs.get(9).date()).isEqualTo(LocalDate.of(2022,5,8))
+                () -> assertThat(allRepairs.get(0).date()).isEqualTo(LocalDate.of(2022,5,6)),
+                () -> assertThat(allRepairs.get(1).date()).isEqualTo(LocalDate.of(2022,5,6)),
+                () -> assertThat(allRepairs.get(2).date()).isEqualTo(LocalDate.of(2022,5,6)),
+                () -> assertThat(allRepairs.get(3).date()).isEqualTo(LocalDate.of(2022,5,7)),
+                () -> assertThat(allRepairs.get(4).date()).isEqualTo(LocalDate.of(2022,5,7)),
+                () -> assertThat(allRepairs.get(5).date()).isEqualTo(LocalDate.of(2022,5,7)),
+                () -> assertThat(allRepairs.get(6).date()).isEqualTo(LocalDate.of(2022,5,8)),
+                () -> assertThat(allRepairs.get(7).date()).isEqualTo(LocalDate.of(2022,5,8)),
+                () -> assertThat(allRepairs.get(8).date()).isEqualTo(LocalDate.of(2022,5,8)),
+                () -> assertThat(allRepairs.get(9).date()).isEqualTo(LocalDate.of(2022,5,9))
         );
     }
 

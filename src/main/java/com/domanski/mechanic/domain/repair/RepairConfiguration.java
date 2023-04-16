@@ -11,7 +11,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.time.Clock;
-import java.time.LocalDate;
 
 @Configuration
 public class RepairConfiguration {
@@ -28,7 +27,7 @@ public class RepairConfiguration {
 
     @Bean
     public RepairDateGenerator repairDateGenerator(RepairRepository repairRepository, @Value("${app.repair.maximumRepairPerDay}") Long maximumRepairPerDay, Clock clock) {
-        return new RepairDateGenerator(repairRepository, maximumRepairPerDay, LocalDate.now(clock));
+        return new RepairDateGenerator(repairRepository, maximumRepairPerDay, clock);
     }
 
     @Bean

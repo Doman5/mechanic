@@ -1,0 +1,26 @@
+// step 1: mechanic made POST /token with username=mechanic, password=password and system returned OK(200) with token "QQQQ.WWWW.EEEE".
+// step 2: mechanic made GET /mechanic/repairs with header"Authorization: Bearer "QQQQ.WWWW.EEEE" and return OK(200) with 0 repairs.
+// step 3: user tried to GET jwt token by requesting POST /token with username=someUser, password=somePassword and system returned UNAUTHORIZED(401).
+// step 4: user tried to POST /repair with repair report and return FORBIDDEN(403).
+// step 5: user made POST to /register username=someUser, password=somePassword and system register with status CREATED(201).
+// step 6: user tried get jwt token by requesting POST /token with username=someUser, password=somePassword and system returned OK(200) and jwt token=AAAA.BBBB.CCCC.
+// step 7: user made GET to /repair with header"Authorization: Bearer "AAAA.BBBB.CCCC" and system returned OK(200) with 0 repair.
+// step 8: user made POST to /repair with header"Authorization: Bearer "AAAA.BBBB.CCCC" and system returned CREATED(201) with reported repair with id 1000.
+// step 9: user made GET to /repair with header"Authorization: Bearer "AAAA.BBBB.CCCC" and system returned OK(200) with 1 repair.
+// step 10: user made GET to /repair/1000 at 05.05.2022 11:55 with header"Authorization: Bearer "AAAA.BBBB.CCCC" and system returned OK(200) with repair without specified date;
+// step 11: scheduler run repairDateSetter and set date for repair with id 1000.
+// step 10: user made GET to /repair/1000 at 05.05.2022 12:05 with header"Authorization: Bearer "AAAA.BBBB.CCCC" and system returned OK(200) with repair with 06.05.2022 date and status awaiting;
+// step 11: mechanic made GET /mechanic/repairs with header"Authorization: Bearer "QQQQ.WWWW.EEEE" and return OK(200) with 1 repairs.
+// step 12: mechanic made GET /parts with header"Authorization: Bearer "QQQQ.WWWW.EEEE" and return OK(200) with empty body.
+// step 13: mechanic made 2 time POST /parts with header"Authorization: Bearer "QQQQ.WWWW.EEEE" and new parts and system returned CREATED(201) and part.
+// step 14: mechanic made GET /parts with header"Authorization: Bearer "QQQQ.WWWW.EEEE" and return OK(200) with 2 parts.
+// step 15: mechanic made POST /mechanic/repair/1000 with header"Authorization: Bearer "QQQQ.WWWW.EEEE", 2 parts, 1 work hour and system returned OK().
+// step 16: user made GET to /repair/1000 at with header"Authorization: Bearer "AAAA.BBBB.CCCC" and system returned OK(200) with repair status work in progres, new parts and work time;
+// step 17: mechanic made POST /mechanic/repair/1000 with header"Authorization: Bearer "QQQQ.WWWW.EEEE", 1 earlier used part, 1 new part, 4 work hour and system returned OK().
+// step 18: user made GET to /repair/1000 at with header"Authorization: Bearer "AAAA.BBBB.CCCC" and system returned OK(200) with new parts and work time;
+// step 19: mechanic made POST /mechanic/repair/1000/end with header"Authorization: Bearer "QQQQ.WWWW.EEEE" and system returned OK().
+// step 20: user made GET to /repair/1000 at with header"Authorization: Bearer "AAAA.BBBB.CCCC" and system returned OK(200) with status finished;
+// step 21: mechanic made GET /mechanic/repairs with header"Authorization: Bearer "QQQQ.WWWW.EEEE" and return OK(200) with 0 repairs.
+// step 22: user twice made POST to /repair with header"Authorization: Bearer "AAAA.BBBB.CCCC" and system returned CREATED(201) with reported repair with id 2000 and 3000.
+// step 23: scheduler run repairDateSetter and set date for repair with id 2000 and 3000.
+// step 24: user made GET to /repair with header"Authorization: Bearer "AAAA.BBBB.CCCC" and system returned OK(200) with 3 repairs.
