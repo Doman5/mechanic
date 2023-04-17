@@ -3,7 +3,7 @@ package com.domanski.mechanic.features;
 import com.domanski.mechanic.BaseIntegrationTest;
 import com.domanski.mechanic.IntegrationConfiguration;
 import com.domanski.mechanic.MechanicApplication;
-import com.domanski.mechanic.domain.part.PartResponse;
+import com.domanski.mechanic.domain.part.dto.PartResponse;
 import com.domanski.mechanic.domain.repair.dto.RepairReportResponse;
 import com.domanski.mechanic.domain.repair.dto.RepairResponse;
 import com.domanski.mechanic.domain.repair.model.RepairStatus;
@@ -175,7 +175,7 @@ public class TypicalScenarioUserWantToReportRepairAndMechanicRepairCarIntegratio
         mockMvc.perform(get("/parts")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(content().json(""));
+                .andExpect(content().string("[]"));
 
 
         // step 13: mechanic made 2 time POST /parts with header"Authorization: Bearer "QQQQ.WWWW.EEEE" and new parts and system returned CREATED(201) and part.
@@ -204,16 +204,32 @@ public class TypicalScenarioUserWantToReportRepairAndMechanicRepairCarIntegratio
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
+        String performThirdPostParts = mockMvc.perform(post("/parts")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "name": "part3",
+                                    "price": "1000.00"
+                                }
+                                """.trim()))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
         PartResponse firstPart = objectMapper.readValue(performFirstPostParts, PartResponse.class);
         PartResponse secondPart = objectMapper.readValue(performSecondPostParts, PartResponse.class);
+        PartResponse thirdPart = objectMapper.readValue(performThirdPostParts, PartResponse.class);
         //then
         assertAll(
                 () -> assertThat(firstPart.id()).isEqualTo(1),
                 () -> assertThat(firstPart.name()).isEqualTo("part1"),
-                () -> assertThat(firstPart.price()).isEqualTo(BigDecimal.valueOf(10.00)),
+                () -> assertThat(firstPart.price()).isEqualTo(BigDecimal.valueOf(10).setScale(2)),
                 () -> assertThat(secondPart.id()).isEqualTo(2),
                 () -> assertThat(secondPart.name()).isEqualTo("part2"),
-                () -> assertThat(secondPart.price()).isEqualTo(BigDecimal.valueOf(100.00))
+                () -> assertThat(secondPart.price()).isEqualTo(BigDecimal.valueOf(100).setScale(2)),
+                () -> assertThat(thirdPart.id()).isEqualTo(3),
+                () -> assertThat(thirdPart.name()).isEqualTo("part3"),
+                () -> assertThat(thirdPart.price()).isEqualTo(BigDecimal.valueOf(1000).setScale(2))
         );
 
 
@@ -225,15 +241,17 @@ public class TypicalScenarioUserWantToReportRepairAndMechanicRepairCarIntegratio
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
-        List<PartResponse> listWith2Parts = objectMapper.readValue(performMechanicPartsWith2PartsJson, new TypeReference<>() {
+        List<PartResponse> listWith3Parts = objectMapper.readValue(performMechanicPartsWith2PartsJson, new TypeReference<>() {
         });
         //then
         assertAll(
-                () -> assertThat(listWith2Parts).hasSize(2),
-                () -> assertThat(listWith2Parts.get(0).id()).isEqualTo(1),
-                () -> assertThat(listWith2Parts.get(0).name()).isEqualTo("part1"),
-                () -> assertThat(listWith2Parts.get(1).id()).isEqualTo(2),
-                () -> assertThat(listWith2Parts.get(1).name()).isEqualTo("part2")
+                () -> assertThat(listWith3Parts).hasSize(3),
+                () -> assertThat(listWith3Parts.get(0).id()).isEqualTo(1),
+                () -> assertThat(listWith3Parts.get(0).name()).isEqualTo("part1"),
+                () -> assertThat(listWith3Parts.get(1).id()).isEqualTo(2),
+                () -> assertThat(listWith3Parts.get(1).name()).isEqualTo("part2"),
+                () -> assertThat(listWith3Parts.get(2).id()).isEqualTo(3),
+                () -> assertThat(listWith3Parts.get(2).name()).isEqualTo("part3")
         );
 
 
@@ -280,13 +298,63 @@ public class TypicalScenarioUserWantToReportRepairAndMechanicRepairCarIntegratio
                 () -> assertThat(thirdTimeSearchedRepairWithId.parts().get(1).name()).isEqualTo("part2"),
                 () -> assertThat(thirdTimeSearchedRepairWithId.parts().get(1).quantity()).isEqualTo(2),
                 () -> assertThat(thirdTimeSearchedRepairWithId.workTime()).isEqualTo(1.00),
-                () -> assertThat(thirdTimeSearchedRepairWithId.repairCost()).isEqualTo(BigDecimal.valueOf(210.00))
+                () -> assertThat(thirdTimeSearchedRepairWithId.repairCost()).isEqualTo(BigDecimal.valueOf(310).setScale(2))
         );
 
 
         // step 17: mechanic made POST /mechanic/repairs/1000 with header"Authorization: Bearer "QQQQ.WWWW.EEEE", 1 earlier used part, 1 new part, 4 work hour and system returned OK().
+        //given && when
+        String performSecondTimeMechanicPutRepair = mockMvc.perform(put("/mechanic/repairs/" + firstRepairId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                "parts": [
+                                    {"partId": "1", "quantity": "1"},
+                                    {"partId": "3", "quantity": "1"}
+                                ],
+                                "workiTime": "1.0"
+                                }
+                                """.trim()))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+        RepairResponse secondStepOfRepair = objectMapper.readValue(performSecondTimeMechanicPutRepair, RepairResponse.class);
+        //then
+        assertAll(
+                () -> assertThat(secondStepOfRepair.parts()).hasSize(3),
+                () -> assertThat(secondStepOfRepair.workTime()).isEqualTo(2.0),
+                () -> assertThat(secondStepOfRepair.repairStatus()).isEqualTo(RepairStatus.WORK_IN_PROGRESS)
+        );
+
+
         // step 18: user made GET to /repairs/1000 at with header"Authorization: Bearer "AAAA.BBBB.CCCC" and system returned OK(200) with new parts and work time;
-        // step 19: mechanic made POST /mechanic/repairs/1000/end with header"Authorization: Bearer "QQQQ.WWWW.EEEE" and system returned OK().
+        String userFourthPerformGetRepairWithIdJson = mockMvc.perform(get("/repairs/" + firstRepairId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+        RepairResponse fourthTimeSearchedRepairWithId = objectMapper.readValue(userFourthPerformGetRepairWithIdJson, RepairResponse.class);
+        //then
+        assertAll(
+                () -> assertThat(fourthTimeSearchedRepairWithId.repairStatus()).isEqualTo(RepairStatus.WORK_IN_PROGRESS),
+                () -> assertThat(fourthTimeSearchedRepairWithId.parts()).hasSize(3),
+                () -> assertThat(fourthTimeSearchedRepairWithId.parts().get(0).name()).isEqualTo("part1"),
+                () -> assertThat(fourthTimeSearchedRepairWithId.parts().get(0).quantity()).isEqualTo(2),
+                () -> assertThat(fourthTimeSearchedRepairWithId.parts().get(1).name()).isEqualTo("part2"),
+                () -> assertThat(fourthTimeSearchedRepairWithId.parts().get(1).quantity()).isEqualTo(2),
+                () -> assertThat(fourthTimeSearchedRepairWithId.parts().get(2).name()).isEqualTo("part3"),
+                () -> assertThat(fourthTimeSearchedRepairWithId.parts().get(2).quantity()).isEqualTo(1),
+                () -> assertThat(fourthTimeSearchedRepairWithId.workTime()).isEqualTo(2.00),
+                () -> assertThat(fourthTimeSearchedRepairWithId.repairCost()).isEqualTo(BigDecimal.valueOf(1420).setScale(2))
+        );
+
+
+        // step 19: mechanic made PUT /mechanic/repairs/1000/end with header"Authorization: Bearer "QQQQ.WWWW.EEEE" and system returned OK().
+
+
+
         // step 20: user made GET to /repairs/1000 at with header"Authorization: Bearer "AAAA.BBBB.CCCC" and system returned OK(200) with status finished;
         // step 21: mechanic made GET /mechanic/repairs with header"Authorization: Bearer "QQQQ.WWWW.EEEE" and return OK(200) with 0 repairs.
         // step 22: user twice made POST to /repairs with header"Authorization: Bearer "AAAA.BBBB.CCCC" and system returned CREATED(201) with reported repair with id 2000 and 3000.
