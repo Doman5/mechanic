@@ -1,16 +1,17 @@
 package com.domanski.mechanic.domain.repair;
 
+import com.domanski.mechanic.domain.common.Part;
+import com.domanski.mechanic.domain.common.PartRepository;
 import com.domanski.mechanic.domain.part.PartRepositoryInMemoryImpl;
 import com.domanski.mechanic.domain.repair.dto.CreateRepairRequest;
-import com.domanski.mechanic.domain.repair.dto.UsedPartRequest;
 import com.domanski.mechanic.domain.repair.dto.PartsAndWorkTimeRequest;
 import com.domanski.mechanic.domain.repair.dto.RepairReportResponse;
 import com.domanski.mechanic.domain.repair.dto.RepairResponse;
+import com.domanski.mechanic.domain.repair.dto.UsedPartRequest;
 import com.domanski.mechanic.domain.repair.error.PartNoFoundException;
 import com.domanski.mechanic.domain.repair.error.RepairNoFoundException;
-import com.domanski.mechanic.domain.common.Part;
+import com.domanski.mechanic.domain.repair.model.RepairPart;
 import com.domanski.mechanic.domain.repair.model.RepairStatus;
-import com.domanski.mechanic.domain.common.PartRepository;
 import com.domanski.mechanic.domain.repair.repository.RepairPartRepository;
 import com.domanski.mechanic.domain.repair.repository.RepairRepository;
 import com.domanski.mechanic.domain.repair.utils.RepairCostCalculator;
@@ -100,12 +101,15 @@ class RepairFacadeTest implements SamplePartAndWorkTimeRequest {
         PartsAndWorkTimeRequest workRepairRequest = createPartsAndWorkTimeRequest();
         //when
         RepairResponse repairAfterWork = repairFacade.doRepairWithPartsAndWorkTime(repairId, workRepairRequest);
+        List<RepairPart> repairPartsAfterWork = repairPartRepository.findAll();
+        BigDecimal valueOfUsedPart = sumPartsPrices(repairPartsAfterWork);
         //then
         assertAll(
+                () -> assertThat(repairPartsAfterWork).hasSize(2),
                 () -> assertThat(repairAfterWork.workTime()).isEqualTo(4),
-                () -> assertThat(repairAfterWork.parts()).hasSize(2),
-                () -> assertThat(repairAfterWork.repairCost()).isEqualTo(BigDecimal.valueOf(600.0)),
-                () -> assertThat(repairAfterWork.repairStatus()).isEqualTo(RepairStatus.WORK_IN_PROGRESS)
+                () -> assertThat(repairAfterWork.repairStatus()).isEqualTo(RepairStatus.WORK_IN_PROGRESS),
+                () -> assertThat(repairAfterWork.repairCost()).isEqualTo(BigDecimal.valueOf(400.0)),
+                () -> assertThat(valueOfUsedPart).isEqualTo(BigDecimal.valueOf(200))
         );
     }
 
@@ -121,11 +125,14 @@ class RepairFacadeTest implements SamplePartAndWorkTimeRequest {
         PartsAndWorkTimeRequest secondPartsAndWorkTimeRequest = createPartsAndWorkTimeRequestWithEarlierUsedPart();
         //when
         RepairResponse repairResult = repairFacade.doRepairWithPartsAndWorkTime(repairId, secondPartsAndWorkTimeRequest);
+        List<RepairPart> repairPartsResult = repairPartRepository.findAll();
+        BigDecimal partsValue = sumPartsPrices(repairPartsResult);
         //then
         assertAll(
-                () -> assertThat(repairResult.parts().get(0).quantity()).isEqualTo(2),
-                () -> assertThat(repairResult.parts().size()).isEqualTo(2),
-                () -> assertThat(repairResult.repairCost()).isEqualTo(BigDecimal.valueOf(800.0))
+                () -> assertThat(repairPartsResult.get(0).getQuantity()).isEqualTo(2),
+                () -> assertThat(repairPartsResult.size()).isEqualTo(2),
+                () -> assertThat(repairResult.repairCost()).isEqualTo(BigDecimal.valueOf(500.0)),
+                () -> assertThat(partsValue).isEqualTo(BigDecimal.valueOf(300))
         );
     }
 
@@ -142,13 +149,15 @@ class RepairFacadeTest implements SamplePartAndWorkTimeRequest {
         PartsAndWorkTimeRequest secondPartsAndWorkTimeRequest = createPartsAndWorkTimeRequestWithNeverUsedPart();
         //when
         RepairResponse repairResult = repairFacade.doRepairWithPartsAndWorkTime(repairId, secondPartsAndWorkTimeRequest);
+        List<RepairPart> repairParts = repairPartRepository.findAll();
+        BigDecimal partsValue = sumPartsPrices(repairParts);
         //then
         assertAll(
-                () -> assertThat(repairResult.parts().size()).isEqualTo(3),
-                () -> assertThat(repairResult.repairCost()).isEqualTo(BigDecimal.valueOf(900.0))
+                () -> assertThat(repairParts).hasSize(3),
+                () -> assertThat(repairResult.repairCost()).isEqualTo(BigDecimal.valueOf(500.0)),
+                () -> assertThat(partsValue).isEqualTo(BigDecimal.valueOf(400))
         );
     }
-
 
     @Test
     public void should_throw_part_no_found_exception_when_try_to_use_no_existing_part() {
@@ -273,5 +282,12 @@ class RepairFacadeTest implements SamplePartAndWorkTimeRequest {
                 .name("part 3")
                 .price(BigDecimal.valueOf(200))
                 .build());
+    }
+
+    private static BigDecimal sumPartsPrices(List<RepairPart> repairParts) {
+        return repairParts.stream()
+                .map(repairPart -> repairPart.getPart().getPrice().multiply(BigDecimal.valueOf(repairPart.getQuantity())))
+                .reduce(BigDecimal::add)
+                .orElse(BigDecimal.ZERO);
     }
 }

@@ -1,17 +1,16 @@
 package com.domanski.mechanic.domain.repair.utils;
 
-import com.domanski.mechanic.domain.repair.dto.UsedPartRequest;
+import com.domanski.mechanic.domain.common.Part;
+import com.domanski.mechanic.domain.common.PartRepository;
 import com.domanski.mechanic.domain.repair.dto.PartsAndWorkTimeRequest;
+import com.domanski.mechanic.domain.repair.dto.UsedPartRequest;
 import com.domanski.mechanic.domain.repair.error.PartNoFoundException;
 import com.domanski.mechanic.domain.repair.error.RepairPartNoFoundException;
-import com.domanski.mechanic.domain.common.Part;
 import com.domanski.mechanic.domain.repair.model.Repair;
 import com.domanski.mechanic.domain.repair.model.RepairPart;
-import com.domanski.mechanic.domain.common.PartRepository;
 import com.domanski.mechanic.domain.repair.repository.RepairPartRepository;
 import lombok.AllArgsConstructor;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @AllArgsConstructor
@@ -32,14 +31,11 @@ public class RepairUsedPartManager {
                 .forEach(partRequest -> {
                     Part part = partRepository.findById(partRequest.partId())
                             .orElseThrow(() -> new PartNoFoundException("Part with id %d no found".formatted(partRequest.partId())));
-                    RepairPart savedRepairPart = repairPartRepository.save(RepairPart.builder()
+                    repairPartRepository.save(RepairPart.builder()
                             .part(part)
                             .repair(repair)
                             .quantity(partRequest.quantity())
                             .build());
-                    List<RepairPart> newRepairParts = new ArrayList<>(repair.getRepairParts());
-                    newRepairParts.add(savedRepairPart);
-                    repair.setRepairParts(newRepairParts);
                 });
     }
 
