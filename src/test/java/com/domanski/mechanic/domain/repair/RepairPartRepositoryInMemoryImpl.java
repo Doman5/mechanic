@@ -20,7 +20,7 @@ public class RepairPartRepositoryInMemoryImpl implements RepairPartRepository {
 
     @Override
     public List<RepairPart> findAll() {
-        return null;
+        return database.values().stream().toList();
     }
 
     @Override
@@ -70,6 +70,10 @@ public class RepairPartRepositoryInMemoryImpl implements RepairPartRepository {
 
     @Override
     public <S extends RepairPart> S save(S repairPart) {
+        if(repairPart.getId() != null) {
+            return repairPart;
+        }
+
         database.put(indexCounter, repairPart);
         repairPart.setId(indexCounter);
         indexCounter++;

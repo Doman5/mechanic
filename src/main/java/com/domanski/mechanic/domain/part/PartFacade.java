@@ -7,12 +7,14 @@ import com.domanski.mechanic.domain.part.dto.PartResponse;
 import com.domanski.mechanic.domain.repair.error.PartNoFoundException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.util.List;
 
 @AllArgsConstructor
 @Slf4j
+@Component
 public class PartFacade {
 
     private final PartRepository partRepository;
