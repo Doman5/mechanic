@@ -10,6 +10,7 @@ import com.domanski.mechanic.domain.repair.dto.RepairResponse;
 import com.domanski.mechanic.domain.repair.dto.UsedPartRequest;
 import com.domanski.mechanic.domain.repair.error.PartNoFoundException;
 import com.domanski.mechanic.domain.repair.error.RepairNoFoundException;
+import com.domanski.mechanic.domain.repair.error.RepairStatusException;
 import com.domanski.mechanic.domain.repair.model.RepairPart;
 import com.domanski.mechanic.domain.repair.model.RepairStatus;
 import com.domanski.mechanic.domain.repair.repository.RepairPartRepository;
@@ -117,10 +118,7 @@ class RepairFacadeTest implements SamplePartAndWorkTimeRequest {
     public void should_change_quantity_of_earlier_used_part() {
         //given
         Long repairId = 1L;
-        sampleRepairScenarios.createNewRepair();
-        saveThreePartsInDatabase();
-        PartsAndWorkTimeRequest firstPartsAndWorkTimeRequest = createPartsAndWorkTimeRequest();
-        repairFacade.doRepairWithPartsAndWorkTime(repairId, firstPartsAndWorkTimeRequest);
+        createRepairAndStartWorkOnIn(repairId);
 
         PartsAndWorkTimeRequest secondPartsAndWorkTimeRequest = createPartsAndWorkTimeRequestWithEarlierUsedPart();
         //when
@@ -140,11 +138,7 @@ class RepairFacadeTest implements SamplePartAndWorkTimeRequest {
     public void should_add_new_part_to_repair() {
         //given
         Long repairId = 1L;
-        sampleRepairScenarios.createNewRepair();
-        saveThreePartsInDatabase();
-
-        PartsAndWorkTimeRequest firstPartsAndWorkTimeRequest = createPartsAndWorkTimeRequest();
-        repairFacade.doRepairWithPartsAndWorkTime(repairId, firstPartsAndWorkTimeRequest);
+        createRepairAndStartWorkOnIn(repairId);
 
         PartsAndWorkTimeRequest secondPartsAndWorkTimeRequest = createPartsAndWorkTimeRequestWithNeverUsedPart();
         //when
@@ -257,6 +251,37 @@ class RepairFacadeTest implements SamplePartAndWorkTimeRequest {
         assertThat(userRepairsResult).isEmpty();
     }
 
+    @Test
+    public void should_return_repair_with_changed_status_to_finished() {
+        //given
+        Long repairId = 1L;
+        createRepairAndStartWorkOnIn(repairId);
+        //when
+        RepairResponse repairResponse = repairFacade.finishRepair(1L);
+        //then
+        assertThat(repairResponse.repairStatus()).isEqualTo(RepairStatus.FINISHED);
+    }
+
+    @Test
+    public void should_throw_exception_when_user_try_finish_repair_with_status_finished() {
+        //given
+        Long repairId = 1L;
+        createRepairAndFinishIt(repairId);
+        //when && then
+        assertThrows(RepairStatusException.class, () -> repairFacade.finishRepair(repairId), "Repair with id 1 was already finished");
+
+    }
+
+    @Test
+    public void should_throw_exception_when_user_try_finish_repair_with_status_awaiting() {
+        //given
+        Long repairId = 1L;
+        sampleRepairScenarios.createNewRepair();
+        //when && then
+        assertThrows(RepairStatusException.class, () -> repairFacade.finishRepair(repairId), "Repair with id 1 and status AWAITING can not be finished, first start work on it");
+    }
+
+
     private void reportRepairsManyTimes(int quantity) {
         for (int i = 0; i < quantity; i++) {
             repairFacade.reportRepair(CreateRepairRequest.builder()
@@ -282,6 +307,18 @@ class RepairFacadeTest implements SamplePartAndWorkTimeRequest {
                 .name("part 3")
                 .price(BigDecimal.valueOf(200))
                 .build());
+    }
+
+    private void createRepairAndStartWorkOnIn(Long repairId) {
+        sampleRepairScenarios.createNewRepair();
+        saveThreePartsInDatabase();
+        PartsAndWorkTimeRequest firstPartsAndWorkTimeRequest = createPartsAndWorkTimeRequest();
+        repairFacade.doRepairWithPartsAndWorkTime(repairId, firstPartsAndWorkTimeRequest);
+    }
+
+    private void createRepairAndFinishIt(Long repairId) {
+        createRepairAndStartWorkOnIn(repairId);
+        repairFacade.finishRepair(1L);
     }
 
     private static BigDecimal sumPartsPrices(List<RepairPart> repairParts) {

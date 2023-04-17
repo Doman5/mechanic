@@ -20,6 +20,7 @@ import java.util.List;
 
 import static com.domanski.mechanic.domain.repair.utils.RepairCreateUtils.createNewRepair;
 import static com.domanski.mechanic.domain.repair.utils.RepairCreateUtils.createNewRepairReportResponse;
+import static com.domanski.mechanic.domain.repair.utils.RepairStatusChanger.changeRepairStatusToFinished;
 import static com.domanski.mechanic.domain.repair.utils.RepairStatusChanger.changeRepairStatusToWorkInProgressIfWasNotChangedBefore;
 
 @RequiredArgsConstructor
@@ -73,5 +74,13 @@ public class RepairFacade {
         repairsWithoutDate
                 .forEach(repairDateGenerator::generateDateAndUpdateRepairInformation);
 
+    }
+
+    public RepairResponse finishRepair(Long id) {
+        Repair repair = repairRepository.findById(id)
+                .orElseThrow(() -> new RepairNoFoundException("Repair with id %d no found".formatted(id)));
+        changeRepairStatusToFinished(repair);
+        Repair changedRepair = repairRepository.save(repair);
+        return RepairMapper.mapFromRepair(changedRepair);
     }
 }
