@@ -39,4 +39,10 @@ public class MechanicController {
         RepairResponse repairResponse = repairFacade.doRepairWithPartsAndWorkTime(id, partsAndWorkTimeRequest);
         return ResponseEntity.ok(repairResponse);
     }
+
+    @GetMapping("/{id}/finish")
+    public ResponseEntity<RepairResponse> finishRepair(@PathVariable Long id) {
+        RepairResponse repairResponse = repairFacade.finishRepair(id);
+        return ResponseEntity.ok(repairResponse);
+    }
 }

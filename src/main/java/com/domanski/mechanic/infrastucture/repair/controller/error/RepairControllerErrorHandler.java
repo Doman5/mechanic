@@ -2,6 +2,7 @@ package com.domanski.mechanic.infrastucture.repair.controller.error;
 
 import com.domanski.mechanic.domain.repair.error.PartNoFoundException;
 import com.domanski.mechanic.domain.repair.error.RepairNoFoundException;
+import com.domanski.mechanic.domain.repair.error.RepairStatusException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -30,6 +31,17 @@ public class RepairControllerErrorHandler {
         log.error(message);
         return new RepairErrorResponse(message, HttpStatus.NOT_FOUND);
     }
+
+    @ExceptionHandler(RepairStatusException.class)
+    @ResponseBody
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public RepairErrorResponse handleRepairStatusException(RepairStatusException exception) {
+        String message = exception.getMessage();
+        log.error(message);
+        return new RepairErrorResponse(message, HttpStatus.CONFLICT);
+    }
+
+
 
 
 }
