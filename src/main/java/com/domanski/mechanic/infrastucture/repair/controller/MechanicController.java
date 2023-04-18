@@ -23,8 +23,8 @@ public class MechanicController {
     private final RepairFacade repairFacade;
 
     @GetMapping
-    public ResponseEntity<List<RepairResponse>> getAllRepairs() {
-        List<RepairResponse> allRepairs = repairFacade.getAllRepairs();
+    public ResponseEntity<List<RepairResponse>> getAllAwaitingRepairs() {
+        List<RepairResponse> allRepairs = repairFacade.getAllAwaitingRepairs();
         return ResponseEntity.ok(allRepairs);
     }
 

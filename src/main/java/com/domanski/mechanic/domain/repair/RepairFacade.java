@@ -38,8 +38,8 @@ public class RepairFacade {
                 .orElseThrow(() -> new RepairNoFoundException("Repair with id %d no found".formatted(id)));
     }
 
-    public List<RepairResponse> getAllRepairs() {
-        return repairRepository.findAll().stream()
+    public List<RepairResponse> getAllAwaitingRepairs() {
+        return repairRepository.findAllByRepairStatus(RepairStatus.AWAITING).stream()
                 .map(RepairMapper::mapFromRepair)
                 .toList();
     }
