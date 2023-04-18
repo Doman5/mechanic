@@ -351,14 +351,108 @@ public class TypicalScenarioUserWantToReportRepairAndMechanicRepairCarIntegratio
         );
 
 
-        // step 19: mechanic made PUT /mechanic/repairs/1000/end with header"Authorization: Bearer "QQQQ.WWWW.EEEE" and system returned OK().
-
+        // step 19: mechanic made GET /mechanic/repairs/1000/finish with header"Authorization: Bearer "QQQQ.WWWW.EEEE" and system returned OK().
+        //given && when
+        String mechanicPerformGetToEndWorkJson = mockMvc.perform(get("/mechanic/repairs/" + firstRepairId + "/finish")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+        RepairResponse finishedRepairResponseForMechanic = objectMapper.readValue(mechanicPerformGetToEndWorkJson, RepairResponse.class);
+        //then
+        assertThat(finishedRepairResponseForMechanic.repairStatus()).isEqualTo(RepairStatus.FINISHED);
 
 
         // step 20: user made GET to /repairs/1000 at with header"Authorization: Bearer "AAAA.BBBB.CCCC" and system returned OK(200) with status finished;
+        String userPerformGetToEndWorkJson = mockMvc.perform(get("/repairs/" + firstRepairId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+        RepairResponse finishedRepairResponseForUser = objectMapper.readValue(userPerformGetToEndWorkJson, RepairResponse.class);
+        //then
+        assertThat(finishedRepairResponseForUser.repairStatus()).isEqualTo(RepairStatus.FINISHED);
+
+
         // step 21: mechanic made GET /mechanic/repairs with header"Authorization: Bearer "QQQQ.WWWW.EEEE" and return OK(200) with 0 repairs.
+        String performMechanicGetRepairsAfterDoRepairJson = mockMvc.perform(get("/mechanic/repairs")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+        List<RepairResponse> mechanicRepairsListAfterDoRepair = objectMapper.readValue(performMechanicGetRepairsAfterDoRepairJson, new TypeReference<>() {
+        });
+        //then
+        assertThat(mechanicRepairsListAfterDoRepair).isEmpty();
+
+
         // step 22: user twice made POST to /repairs with header"Authorization: Bearer "AAAA.BBBB.CCCC" and system returned CREATED(201) with reported repair with id 2000 and 3000.
+        // given && when
+        String performUserPostRepairReportSecondTimeJson = mockMvc.perform(post("/repairs").contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                "description": "Repair description 2",
+                                "userId": 1
+                                }
+                                """.trim()))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString(StandardCharsets.UTF_8);
+        RepairReportResponse repairReportSecondResponse = objectMapper.readValue(performUserPostRepairReportSecondTimeJson, RepairReportResponse.class);
+        String performUserPostRepairReportThirdTimeJson = mockMvc.perform(post("/repairs").contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                "description": "Repair description 3",
+                                "userId": 1
+                                }
+                                """.trim()))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString(StandardCharsets.UTF_8);
+        RepairReportResponse repairReportThirdResponse = objectMapper.readValue(performUserPostRepairReportThirdTimeJson, RepairReportResponse.class);
+        // then
+        assertAll(
+                () -> assertThat(repairReportSecondResponse.message()).isEqualTo("Naprawa została zgłoszona"),
+                () -> assertThat(repairReportSecondResponse.repair().id()).isEqualTo(2L),
+                () -> assertThat(repairReportSecondResponse.repair().repairStatus()).isEqualTo(RepairStatus.DATE_NOT_SPECIFIED),
+                () -> assertThat(repairReportSecondResponse.repair().description()).isEqualTo("Repair description 2"),
+                () -> assertThat(repairReportThirdResponse.message()).isEqualTo("Naprawa została zgłoszona"),
+                () -> assertThat(repairReportThirdResponse.repair().id()).isEqualTo(3L),
+                () -> assertThat(repairReportThirdResponse.repair().repairStatus()).isEqualTo(RepairStatus.DATE_NOT_SPECIFIED),
+                () -> assertThat(repairReportThirdResponse.repair().description()).isEqualTo("Repair description 3")
+        );
+
+
         // step 23: scheduler run repairDateSetter and set date for repair with id 2000 and 3000.
+        repairDateSetterScheduler.generateAndSetRepairsDates();
+
+
         // step 24: user made GET to /repairs with header"Authorization: Bearer "AAAA.BBBB.CCCC" and system returned OK(200) with 3 repairs.
+        String performUserGetRepairsWith3RepairsJson = mockMvc.perform(get("/repairs/users/1")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        List<RepairResponse> userRepairsListWith3Repairs = objectMapper.readValue(performUserGetRepairsWith3RepairsJson, new TypeReference<>() {
+        });
+        //then
+        assertAll(
+                () -> assertThat(userRepairsListWith3Repairs).hasSize(3),
+                () -> assertThat(userRepairsListWith3Repairs.get(0).id()).isEqualTo(1),
+                () -> assertThat(userRepairsListWith3Repairs.get(0).repairStatus()).isEqualTo(RepairStatus.FINISHED),
+                () -> assertThat(userRepairsListWith3Repairs.get(1).id()).isEqualTo(2),
+                () -> assertThat(userRepairsListWith3Repairs.get(1).date()).isEqualTo(LocalDate.of(2022,5,6)),
+                () -> assertThat(userRepairsListWith3Repairs.get(2).id()).isEqualTo(3),
+                () -> assertThat(userRepairsListWith3Repairs.get(2).date()).isEqualTo(LocalDate.of(2022,5,7))
+        );
+
+
     }
 }
