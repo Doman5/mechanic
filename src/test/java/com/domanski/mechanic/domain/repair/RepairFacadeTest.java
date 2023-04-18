@@ -70,7 +70,7 @@ class RepairFacadeTest implements SamplePartAndWorkTimeRequest {
         //given
         sampleRepairScenarios.saveFourRepairsInDatabase();
         //when
-        List<RepairResponse> allRepairs = repairFacade.getAllRepairs();
+        List<RepairResponse> allRepairs = repairFacade.getAllAwaitingRepairs();
         //then
         assertThat(allRepairs).hasSize(4);
     }
@@ -79,7 +79,7 @@ class RepairFacadeTest implements SamplePartAndWorkTimeRequest {
     public void should_return_empty_list_when_are_not_any_repairs_in_database() {
         //given
         //when
-        List<RepairResponse> allRepairs = repairFacade.getAllRepairs();
+        List<RepairResponse> allRepairs = repairFacade.getAllAwaitingRepairs();
         //then
         assertThat(allRepairs).hasSize(0);
     }
@@ -195,7 +195,7 @@ class RepairFacadeTest implements SamplePartAndWorkTimeRequest {
         //when
         repairFacade.generateAndSetRepairsDates();
         //then
-        List<RepairResponse> allRepairs = repairFacade.getAllRepairs();
+        List<RepairResponse> allRepairs = repairFacade.getAllAwaitingRepairs();
         assertAll(
                 () -> assertThat(allRepairs.get(0).date()).isEqualTo(LocalDate.of(2022,5,6)),
                 () -> assertThat(allRepairs.get(1).date()).isEqualTo(LocalDate.of(2022,5,6)),
@@ -211,7 +211,7 @@ class RepairFacadeTest implements SamplePartAndWorkTimeRequest {
         //when
         repairFacade.generateAndSetRepairsDates();
         //then
-        List<RepairResponse> allRepairs = repairFacade.getAllRepairs();
+        List<RepairResponse> allRepairs = repairFacade.getAllAwaitingRepairs();
         assertAll(
                 () -> assertThat(allRepairs.get(0).date()).isEqualTo(LocalDate.of(2022,5,6)),
                 () -> assertThat(allRepairs.get(1).date()).isEqualTo(LocalDate.of(2022,5,6)),
