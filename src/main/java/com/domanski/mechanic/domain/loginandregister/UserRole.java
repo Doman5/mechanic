@@ -1,6 +1,8 @@
 package com.domanski.mechanic.domain.loginandregister;
 
-enum UserRole {
+import org.springframework.security.core.GrantedAuthority;
+
+public enum UserRole implements GrantedAuthority {
     ROLE_MECHANIC("MECHANIC"),
     ROLE_CUSTOMER("CUSTOMER");
 
@@ -10,7 +12,8 @@ enum UserRole {
         this.role = value;
     }
 
-    public String getRole() {
+    @Override
+    public String getAuthority() {
         return role;
     }
 }
