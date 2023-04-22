@@ -1,29 +1,37 @@
 package com.domanski.mechanic.domain.loginandregister;
 
+import com.domanski.mechanic.domain.jwt.JwtService;
 import com.domanski.mechanic.domain.loginandregister.dto.RegisterRequest;
-import com.domanski.mechanic.domain.loginandregister.dto.RegisterUserResponse;
-import com.domanski.mechanic.domain.loginandregister.dto.UserResponse;
+import com.domanski.mechanic.infrastucture.loginandregister.controller.AuthenticationResponse;
 import lombok.AllArgsConstructor;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
 
-import static com.domanski.mechanic.domain.loginandregister.UserMapper.createNewUserFromRegisterRequest;
-
-@Configuration
+@Service
 @AllArgsConstructor
 public class LoginAndRegisterFacade {
 
     private final UserRepository userRepository;
+    private final JwtService jwtService;
+    private final PasswordEncoder passwordEncoder;
 
-    public RegisterUserResponse registerUser(RegisterRequest registerRequest) {
-        User userToSave = createNewUserFromRegisterRequest(registerRequest);
+    public AuthenticationResponse registerUser(RegisterRequest registerRequest) {
+        User userToSave = User.builder()
+                .username(registerRequest.username())
+                .password(passwordEncoder.encode(registerRequest.password()))
+                .role(UserRole.ROLE_CUSTOMER)
+                .build();
         User registeredUser = userRepository.save(userToSave);
-        return new RegisterUserResponse(registeredUser.getId(), registeredUser.getUsername(), true);
+        String token = jwtService.generateToken(registeredUser);
+        return AuthenticationResponse.builder()
+                .token(token)
+                .build();
     }
 
-    public UserResponse findByUsername(String username) {
+    public User findByUsername(String username) {
         return userRepository.findByUsername(username)
-                .map(UserMapper::mapFromUser)
-                .orElseThrow(() -> new UserNoFoundException("User no found"));
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 
 }
