@@ -1,5 +1,5 @@
 --liquibase formatted sql
---changeset ddomanski:4;
+--changeset ddomanski:4
 
 create table repairs_parts(
     id bigint primary key not null auto_increment,
