@@ -1,6 +1,6 @@
 package com.domanski.mechanic.infrastucture.loginandregister.controller;
 
-import com.domanski.mechanic.domain.loginandregister.LoginAndRegisterFacade;
+import com.domanski.mechanic.domain.loginandregister.LoginAndRegisterFacadeImpl;
 import com.domanski.mechanic.domain.loginandregister.dto.LoginRequest;
 import com.domanski.mechanic.domain.loginandregister.dto.RegisterRequest;
 import com.domanski.mechanic.infrastucture.security.jwt.AuthenticationService;
@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class LoginAndRegisterController {
 
-    private final LoginAndRegisterFacade loginAndRegisterFacade;
+    private final LoginAndRegisterFacadeImpl loginAndRegisterFacade;
     private final AuthenticationService authenticationService;
 
     @PostMapping("/register")

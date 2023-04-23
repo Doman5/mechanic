@@ -1,6 +1,7 @@
 package com.domanski.mechanic.domain.repair;
 
 import com.domanski.mechanic.domain.common.PartRepository;
+import com.domanski.mechanic.domain.loginandregister.LoginAndRegisterFacade;
 import com.domanski.mechanic.domain.repair.repository.RepairPartRepository;
 import com.domanski.mechanic.domain.repair.repository.RepairRepository;
 import com.domanski.mechanic.domain.repair.utils.RepairCostCalculator;
@@ -34,7 +35,8 @@ public class RepairConfiguration {
     public RepairFacade repairFacade(RepairRepository repairRepository,
                                      RepairCostCalculator repairCostCalculator,
                                      RepairUsedPartManager repairUsedPartManager,
-                                     RepairDateGenerator repairDateGenerator) {
-        return new RepairFacade(repairRepository, repairCostCalculator, repairUsedPartManager, repairDateGenerator);
+                                     RepairDateGenerator repairDateGenerator,
+                                     LoginAndRegisterFacade loginAndRegisterFacade) {
+        return new RepairFacade(repairRepository, repairCostCalculator, repairUsedPartManager, repairDateGenerator, loginAndRegisterFacade);
     }
 }

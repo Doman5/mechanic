@@ -20,7 +20,7 @@ class LoginAndRegisterFacadeTest {
     private final UserRepository userRepository = new UserRepositoryInMemoryImpl();
     private final JwtService jwtService = new JwtService("4HnVA+eNxFgSGdoiDQDYdii93pn5LSAOG4DCf1L9mq5GdHEiYI4pij9lxxW32k91");
     private final PasswordEncoder passwordEncoder = NoOpPasswordEncoder.getInstance();
-    private final LoginAndRegisterFacade loginAndRegisterFacade = new LoginAndRegisterFacade(userRepository, jwtService, passwordEncoder);
+    private final LoginAndRegisterFacadeImpl loginAndRegisterFacade = new LoginAndRegisterFacadeImpl(userRepository, jwtService, passwordEncoder);
 
     @Test
     public void should_register_user() {
