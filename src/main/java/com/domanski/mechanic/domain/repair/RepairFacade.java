@@ -1,5 +1,6 @@
 package com.domanski.mechanic.domain.repair;
 
+import com.domanski.mechanic.domain.loginandregister.LoginAndRegisterFacade;
 import com.domanski.mechanic.domain.repair.dto.CreateRepairRequest;
 import com.domanski.mechanic.domain.repair.dto.PartsAndWorkTimeRequest;
 import com.domanski.mechanic.domain.repair.dto.RepairReportResponse;
@@ -31,6 +32,7 @@ public class RepairFacade {
     private final RepairCostCalculator repairCostCalculator;
     private final RepairUsedPartManager repairUsedPartManager;
     private final RepairDateGenerator repairDateGenerator;
+    private final LoginAndRegisterFacade loginAndRegisterFacade;
 
     public RepairResponse getRepair(Long id) {
         return repairRepository.findById(id)
@@ -56,14 +58,16 @@ public class RepairFacade {
         return RepairMapper.mapFromRepair(savedRepair);
     }
 
-    public List<RepairResponse> getUserRepairs(Long userId) {
+    public List<RepairResponse> getUserRepairs(String username) {
+        Long userId = loginAndRegisterFacade.findByUsername(username).getId();
         return repairRepository.findAllByUserId(userId).stream()
                 .map(RepairMapper::mapFromRepair)
                 .toList();
     }
 
-    public RepairReportResponse reportRepair(CreateRepairRequest repair) {
-        Repair repairToSave = createNewRepair(repair);
+    public RepairReportResponse reportRepair(CreateRepairRequest repair, String username) {
+        Long userId = loginAndRegisterFacade.findByUsername(username).getId();
+        Repair repairToSave = createNewRepair(repair, userId);
         Repair savedRepair = repairRepository.save(repairToSave);
         return createNewRepairReportResponse(savedRepair);
     }

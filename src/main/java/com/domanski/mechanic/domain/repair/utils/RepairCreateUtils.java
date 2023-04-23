@@ -22,10 +22,10 @@ public class RepairCreateUtils {
                 .build();
     }
 
-    public static Repair createNewRepair(CreateRepairRequest createRepairRequest) {
+    public static Repair createNewRepair(CreateRepairRequest createRepairRequest, Long userId) {
         return Repair.builder()
                 .description(createRepairRequest.description())
-                .userId(createRepairRequest.userId())
+                .userId(userId)
                 .repairStatus(RepairStatus.DATE_NOT_SPECIFIED)
                 .workTime(0.0)
                 .repairParts(Collections.emptyList())
