@@ -7,17 +7,20 @@ import com.domanski.mechanic.domain.part.dto.PartResponse;
 import com.domanski.mechanic.domain.repair.dto.RepairReportResponse;
 import com.domanski.mechanic.domain.repair.dto.RepairResponse;
 import com.domanski.mechanic.domain.repair.model.RepairStatus;
+import com.domanski.mechanic.infrastucture.loginandregister.controller.AuthenticationResponse;
 import com.domanski.mechanic.infrastucture.repair.scheduler.RepairDateSetterScheduler;
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -36,9 +39,29 @@ public class TypicalScenarioUserWantToReportRepairAndMechanicRepairCarIntegratio
     @Test
     public void user_want_to_report_repair_and_mechanic_should_repair_his_car() throws Exception {
         // step 1: mechanic made POST /token with username=mechanic, password=password and system returned OK(200) with token "QQQQ.WWWW.EEEE".
+        // given && when
+        String mechanicAuthTokenJson = mockMvc.perform(post("/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                "username": "mechanic",
+                                "password": "password"
+                                }
+                                """.trim())
+                ).andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+        AuthenticationResponse mechanicAuthResponse = objectMapper.readValue(mechanicAuthTokenJson, AuthenticationResponse.class);
+        String mechanicToken = mechanicAuthResponse.token();
+        //then
+        assertThat(mechanicToken).matches(Pattern.compile("^([A-Za-z0-9-_=]+\\.)+([A-Za-z0-9-_=])+\\.?$"));
+
+
         // step 2: mechanic made GET /mechanic/repairs with header"Authorization: Bearer "QQQQ.WWWW.EEEE" and return OK(200) with 0 repairs.
         //given && when
         String performMechanicGetRepairsJson = mockMvc.perform(get("/mechanic/repairs")
+                        .header("Authorization", "Bearer " + mechanicToken)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn()
@@ -50,16 +73,73 @@ public class TypicalScenarioUserWantToReportRepairAndMechanicRepairCarIntegratio
         assertThat(mechanicRepairsListWithNoRepairs).isEmpty();
 
 
-        // step 3: user tried to GET jwt token by requesting POST /token with username=someUser, password=somePassword and system returned UNAUTHORIZED(401).
+        // step 3: user tried to GET jwt token by requesting POST /login with username=someUser, password=somePassword and system returned UNAUTHORIZED(401).
+        //given && when && then
+        mockMvc.perform(post("/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                        {
+                        "username": "someUser",
+                        "password": "somePassword"
+                        }
+                        """.trim()))
+                .andExpect(status().isUnauthorized());
+
+
         // step 4: user tried to POST /repair with repair report and return FORBIDDEN(403).
+        mockMvc.perform(post("/repair")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                        {
+                        "description": "repair 1"
+                        }
+                        """.trim()))
+                .andExpect(status().isForbidden());
+
+
         // step 5: user made POST to /register username=someUser, password=somePassword and system register with status CREATED(201).
-        // step 6: user tried get jwt token by requesting POST /token with username=someUser, password=somePassword and system returned OK(200) and jwt token=AAAA.BBBB.CCCC.
+        String registerResponseJson = mockMvc.perform(post("/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                "username": "someUser",
+                                "password": "somePassword"
+                                }
+                                """.trim()))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+        AuthenticationResponse registerAuthenticationResponse = objectMapper.readValue(registerResponseJson, AuthenticationResponse.class);
+        //then
+        assertThat(registerAuthenticationResponse.token()).matches(Pattern.compile("^([A-Za-z0-9-_=]+\\.)+([A-Za-z0-9-_=])+\\.?$"));
 
 
-        // step 7: user made GET to /repairs with header"Authorization: Bearer "AAAA.BBBB.CCCC" and system returned OK(200) with 0 repair.
+        // step 6: user tried get jwt token by requesting POST /login with username=someUser, password=somePassword and system returned OK(200) and jwt token=AAAA.BBBB.CCCC.
         //given && when
-        String performUserGetRepairsWithNoRepairsJson = mockMvc.perform(get("/repairs/users/1")
-                        .contentType(MediaType.APPLICATION_JSON))
+        String performLoginUserJson = mockMvc.perform(post("/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                "username": "someUser",
+                                "password": "somePassword"
+                                }
+                                """.trim()))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+        AuthenticationResponse userLoginAuthenticationResponse = objectMapper.readValue(performLoginUserJson, AuthenticationResponse.class);
+        String userToken = userLoginAuthenticationResponse.token();
+        //then
+        assertThat(userToken).matches(Pattern.compile("^([A-Za-z0-9-_=]+\\.)+([A-Za-z0-9-_=])+\\.?$"));
+
+
+        // step 7: user made GET to /repairs/user with header"Authorization: Bearer "AAAA.BBBB.CCCC" and system returned OK(200) with 0 repair.
+        //given && when
+        String performUserGetRepairsWithNoRepairsJson = mockMvc.perform(get("/repairs/user")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + userToken))
                 .andExpect(status().isOk())
                 .andReturn()
                 .getResponse()
@@ -73,13 +153,15 @@ public class TypicalScenarioUserWantToReportRepairAndMechanicRepairCarIntegratio
 
         // step 8: user made POST to /repairs with header"Authorization: Bearer "AAAA.BBBB.CCCC" and system returned CREATED(201) with reported repair with id 1000.
         // given && when
-        String performUserPostRepairReportFirstTimeJson = mockMvc.perform(post("/repairs").contentType(MediaType.APPLICATION_JSON)
+        String performUserPostRepairReportFirstTimeJson = mockMvc.perform(post("/repairs")
+                        .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
                                 "description": "Repair description 1",
                                 "userId": 1
                                 }
-                                """.trim()))
+                                """.trim())
+                        .header("Authorization", "Bearer " + userToken))
                 .andExpect(status().isCreated())
                 .andReturn()
                 .getResponse()
@@ -96,8 +178,9 @@ public class TypicalScenarioUserWantToReportRepairAndMechanicRepairCarIntegratio
 
         // step 9: user made GET to /repairs with header"Authorization: Bearer "AAAA.BBBB.CCCC" and system returned OK(200) with 1 repair.
         //given && when
-        String performUserGetRepairsWithOneRepairsJson = mockMvc.perform(get("/repairs/users/1")
-                        .contentType(MediaType.APPLICATION_JSON))
+        String performUserGetRepairsWithOneRepairsJson = mockMvc.perform(get("/repairs/user")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + userToken))
                 .andExpect(status().isOk())
                 .andReturn()
                 .getResponse()
@@ -122,7 +205,8 @@ public class TypicalScenarioUserWantToReportRepairAndMechanicRepairCarIntegratio
         Long firstRepairId = userRepairsListWithOneRepairs.get(0).id();
         //when
         String userFirstPerformGetRepairWithId1 = mockMvc.perform(get("/repairs/" + firstRepairId)
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + userToken))
                 .andExpect(status().isOk())
                 .andReturn()
                 .getResponse()
@@ -142,7 +226,8 @@ public class TypicalScenarioUserWantToReportRepairAndMechanicRepairCarIntegratio
         // step 10: user made GET to /repairs/1000 at 05.05.2022 12:05 with header"Authorization: Bearer "AAAA.BBBB.CCCC" and system returned OK(200) with repair with 06.05.2022 date and status awaiting;
         //given && when
         String userSecondPerformGetRepairWithId = mockMvc.perform(get("/repairs/" + firstRepairId)
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + userToken))
                 .andExpect(status().isOk())
                 .andReturn()
                 .getResponse()
@@ -159,7 +244,8 @@ public class TypicalScenarioUserWantToReportRepairAndMechanicRepairCarIntegratio
         // step 11: mechanic made GET /mechanic/repairs with header"Authorization: Bearer "QQQQ.WWWW.EEEE" and return OK(200) with 1 repairs.
         //given && when
         String performSecondTimeMechanicGetRepairsJson = mockMvc.perform(get("/mechanic/repairs")
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + mechanicToken))
                 .andExpect(status().isOk())
                 .andReturn()
                 .getResponse()
@@ -173,7 +259,8 @@ public class TypicalScenarioUserWantToReportRepairAndMechanicRepairCarIntegratio
         // step 12: mechanic made GET /parts with header"Authorization: Bearer "QQQQ.WWWW.EEEE" and return OK(200) with empty body.
         //given && when && then
         mockMvc.perform(get("/parts")
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + mechanicToken))
                 .andExpect(status().isOk())
                 .andExpect(content().string("[]"));
 
@@ -187,7 +274,8 @@ public class TypicalScenarioUserWantToReportRepairAndMechanicRepairCarIntegratio
                                     "name": "part1",
                                     "price": "10.00"
                                 }
-                                """.trim()))
+                                """.trim())
+                        .header("Authorization", "Bearer " + mechanicToken))
                 .andExpect(status().isCreated())
                 .andReturn()
                 .getResponse()
@@ -199,7 +287,8 @@ public class TypicalScenarioUserWantToReportRepairAndMechanicRepairCarIntegratio
                                     "name": "part2",
                                     "price": "100.00"
                                 }
-                                """.trim()))
+                                """.trim())
+                        .header("Authorization", "Bearer " + mechanicToken))
                 .andExpect(status().isCreated())
                 .andReturn()
                 .getResponse()
@@ -211,7 +300,8 @@ public class TypicalScenarioUserWantToReportRepairAndMechanicRepairCarIntegratio
                                     "name": "part3",
                                     "price": "1000.00"
                                 }
-                                """.trim()))
+                                """.trim())
+                        .header("Authorization", "Bearer " + mechanicToken))
                 .andExpect(status().isCreated())
                 .andReturn()
                 .getResponse()
@@ -236,7 +326,8 @@ public class TypicalScenarioUserWantToReportRepairAndMechanicRepairCarIntegratio
         // step 14: mechanic made GET /parts with header"Authorization: Bearer "QQQQ.WWWW.EEEE" and return OK(200) with 2 parts.
         //given && when
         String performMechanicPartsWith2PartsJson = mockMvc.perform(get("/parts")
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + mechanicToken))
                 .andExpect(status().isOk())
                 .andReturn()
                 .getResponse()
@@ -266,7 +357,8 @@ public class TypicalScenarioUserWantToReportRepairAndMechanicRepairCarIntegratio
                                 ],
                                 "workiTime": "1.0"
                                 }
-                                """.trim()))
+                                """.trim())
+                        .header("Authorization", "Bearer " + mechanicToken))
                 .andExpect(status().isOk())
                 .andReturn()
                 .getResponse()
@@ -283,7 +375,8 @@ public class TypicalScenarioUserWantToReportRepairAndMechanicRepairCarIntegratio
         // step 16: user made GET to /repairs/1000 at with header"Authorization: Bearer "AAAA.BBBB.CCCC" and system returned OK(200) with repair status work in progres, new parts and work time;
         //given && when
         String userThirdPerformGetRepairWithIdJson = mockMvc.perform(get("/repairs/" + firstRepairId)
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + userToken))
                 .andExpect(status().isOk())
                 .andReturn()
                 .getResponse()
@@ -314,7 +407,8 @@ public class TypicalScenarioUserWantToReportRepairAndMechanicRepairCarIntegratio
                                 ],
                                 "workiTime": "1.0"
                                 }
-                                """.trim()))
+                                """.trim())
+                        .header("Authorization", "Bearer " + mechanicToken))
                 .andExpect(status().isOk())
                 .andReturn()
                 .getResponse()
@@ -330,7 +424,8 @@ public class TypicalScenarioUserWantToReportRepairAndMechanicRepairCarIntegratio
 
         // step 18: user made GET to /repairs/1000 at with header"Authorization: Bearer "AAAA.BBBB.CCCC" and system returned OK(200) with new parts and work time;
         String userFourthPerformGetRepairWithIdJson = mockMvc.perform(get("/repairs/" + firstRepairId)
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + userToken))
                 .andExpect(status().isOk())
                 .andReturn()
                 .getResponse()
@@ -354,7 +449,8 @@ public class TypicalScenarioUserWantToReportRepairAndMechanicRepairCarIntegratio
         // step 19: mechanic made GET /mechanic/repairs/1000/finish with header"Authorization: Bearer "QQQQ.WWWW.EEEE" and system returned OK().
         //given && when
         String mechanicPerformGetToEndWorkJson = mockMvc.perform(get("/mechanic/repairs/" + firstRepairId + "/finish")
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + mechanicToken))
                 .andExpect(status().isOk())
                 .andReturn()
                 .getResponse()
@@ -366,7 +462,8 @@ public class TypicalScenarioUserWantToReportRepairAndMechanicRepairCarIntegratio
 
         // step 20: user made GET to /repairs/1000 at with header"Authorization: Bearer "AAAA.BBBB.CCCC" and system returned OK(200) with status finished;
         String userPerformGetToEndWorkJson = mockMvc.perform(get("/repairs/" + firstRepairId)
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + userToken))
                 .andExpect(status().isOk())
                 .andReturn()
                 .getResponse()
@@ -378,7 +475,8 @@ public class TypicalScenarioUserWantToReportRepairAndMechanicRepairCarIntegratio
 
         // step 21: mechanic made GET /mechanic/repairs with header"Authorization: Bearer "QQQQ.WWWW.EEEE" and return OK(200) with 0 repairs.
         String performMechanicGetRepairsAfterDoRepairJson = mockMvc.perform(get("/mechanic/repairs")
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + mechanicToken))
                 .andExpect(status().isOk())
                 .andReturn()
                 .getResponse()
@@ -397,7 +495,8 @@ public class TypicalScenarioUserWantToReportRepairAndMechanicRepairCarIntegratio
                                 "description": "Repair description 2",
                                 "userId": 1
                                 }
-                                """.trim()))
+                                """.trim())
+                        .header("Authorization", "Bearer " + userToken))
                 .andExpect(status().isCreated())
                 .andReturn()
                 .getResponse()
@@ -409,7 +508,8 @@ public class TypicalScenarioUserWantToReportRepairAndMechanicRepairCarIntegratio
                                 "description": "Repair description 3",
                                 "userId": 1
                                 }
-                                """.trim()))
+                                """.trim())
+                        .header("Authorization", "Bearer " + userToken))
                 .andExpect(status().isCreated())
                 .andReturn()
                 .getResponse()
@@ -433,8 +533,9 @@ public class TypicalScenarioUserWantToReportRepairAndMechanicRepairCarIntegratio
 
 
         // step 24: user made GET to /repairs with header"Authorization: Bearer "AAAA.BBBB.CCCC" and system returned OK(200) with 3 repairs.
-        String performUserGetRepairsWith3RepairsJson = mockMvc.perform(get("/repairs/users/1")
-                        .contentType(MediaType.APPLICATION_JSON))
+        String performUserGetRepairsWith3RepairsJson = mockMvc.perform(get("/repairs/user")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + userToken))
                 .andExpect(status().isOk())
                 .andReturn()
                 .getResponse()
@@ -448,9 +549,9 @@ public class TypicalScenarioUserWantToReportRepairAndMechanicRepairCarIntegratio
                 () -> assertThat(userRepairsListWith3Repairs.get(0).id()).isEqualTo(1),
                 () -> assertThat(userRepairsListWith3Repairs.get(0).repairStatus()).isEqualTo(RepairStatus.FINISHED),
                 () -> assertThat(userRepairsListWith3Repairs.get(1).id()).isEqualTo(2),
-                () -> assertThat(userRepairsListWith3Repairs.get(1).date()).isEqualTo(LocalDate.of(2022,5,6)),
+                () -> assertThat(userRepairsListWith3Repairs.get(1).date()).isEqualTo(LocalDate.of(2022, 5, 6)),
                 () -> assertThat(userRepairsListWith3Repairs.get(2).id()).isEqualTo(3),
-                () -> assertThat(userRepairsListWith3Repairs.get(2).date()).isEqualTo(LocalDate.of(2022,5,7))
+                () -> assertThat(userRepairsListWith3Repairs.get(2).date()).isEqualTo(LocalDate.of(2022, 5, 7))
         );
 
 
