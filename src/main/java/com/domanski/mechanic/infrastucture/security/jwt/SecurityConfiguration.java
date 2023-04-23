@@ -26,6 +26,7 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests()
                 .antMatchers("/login").permitAll()
                 .antMatchers("/register").permitAll()
+                .antMatchers("/parts/**").hasRole(UserRole.ROLE_MECHANIC.getAuthority())
                 .antMatchers("/mechanic/**").hasRole(UserRole.ROLE_MECHANIC.getAuthority())
                 .anyRequest().authenticated()
                 .and()
