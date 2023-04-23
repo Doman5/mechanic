@@ -2,6 +2,9 @@ package com.domanski.mechanic.domain.repair;
 
 import com.domanski.mechanic.domain.common.Part;
 import com.domanski.mechanic.domain.common.PartRepository;
+import com.domanski.mechanic.domain.loginandregister.LoginAndRegisterFacade;
+import com.domanski.mechanic.domain.loginandregister.User;
+import com.domanski.mechanic.domain.loginandregister.dto.RegisterRequest;
 import com.domanski.mechanic.domain.part.PartRepositoryInMemoryImpl;
 import com.domanski.mechanic.domain.repair.dto.CreateRepairRequest;
 import com.domanski.mechanic.domain.repair.dto.PartsAndWorkTimeRequest;
@@ -18,7 +21,10 @@ import com.domanski.mechanic.domain.repair.repository.RepairRepository;
 import com.domanski.mechanic.domain.repair.utils.RepairCostCalculator;
 import com.domanski.mechanic.domain.repair.utils.RepairDateGenerator;
 import com.domanski.mechanic.domain.repair.utils.RepairUsedPartManager;
+import com.domanski.mechanic.infrastucture.loginandregister.controller.AuthenticationResponse;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.Clock;
@@ -31,24 +37,40 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+@ExtendWith(MockitoExtension.class)
 class RepairFacadeTest implements SamplePartAndWorkTimeRequest {
+
+    private final Long maximumRepairPerDay = 3L;
+    private final Clock clock = Clock.fixed(Instant.parse("2022-05-05T12:00:00.00Z"), ZoneOffset.UTC);
 
     private final RepairRepository repairRepository = new RepairRepositoryInMemoryImpl();
     private final PartRepository partRepository = new PartRepositoryInMemoryImpl();
     private final RepairPartRepository repairPartRepository = new RepairPartRepositoryInMemoryImpl();
     private final RepairCostCalculator repairCostCalculator = new RepairCostCalculator(100);
     private final RepairUsedPartManager repairUsedPartManager = new RepairUsedPartManager(repairPartRepository, partRepository);
-    private final Long maximumRepairPerDay = 3L;
-    private final Clock clock = Clock.fixed(Instant.parse("2022-05-05T12:00:00.00Z"), ZoneOffset.UTC);
     private final RepairDateGenerator repairDateGenerator = new RepairDateGenerator(repairRepository, maximumRepairPerDay, clock);
+    private final LoginAndRegisterFacade loginAndRegisterFacade = new LoginAndRegisterFacade() {
+        @Override
+        public AuthenticationResponse registerUser(RegisterRequest registerRequest) {
+            return null;
+        }
 
+        @Override
+        public User findByUsername(String username) {
+            if (username.equals("user")) {
+                return User.builder().id(1L).build();
+            }
+            return User.builder().id(10L).build();
+        }
+    };
     private final SampleRepairScenarios sampleRepairScenarios = new SampleRepairScenarios(repairRepository);
 
     private final RepairFacade repairFacade = new RepairFacade(
             repairRepository,
             repairCostCalculator,
             repairUsedPartManager,
-            repairDateGenerator
+            repairDateGenerator,
+            loginAndRegisterFacade
     );
 
     @Test
@@ -66,7 +88,7 @@ class RepairFacadeTest implements SamplePartAndWorkTimeRequest {
 
 
     @Test
-    public void should_return_all_repairs_saved_in_database() {
+    public void should_return_all_awaiting_repairs_saved_in_database() {
         //given
         sampleRepairScenarios.saveFourRepairsInDatabase();
         //when
@@ -173,12 +195,12 @@ class RepairFacadeTest implements SamplePartAndWorkTimeRequest {
     @Test
     public void should_create_new_repair_from_user_request() {
         //given
+        String username = "user";
         CreateRepairRequest createRepairRequest = CreateRepairRequest.builder()
-                .userId(1L)
                 .description("Description")
                 .build();
         //when
-        RepairReportResponse repairReportResponse = repairFacade.reportRepair(createRepairRequest);
+        RepairReportResponse repairReportResponse = repairFacade.reportRepair(createRepairRequest, username);
         //then
         assertAll(
                 () -> assertThat(repairReportResponse.message()).isEqualTo("Naprawa została zgłoszona"),
@@ -197,10 +219,10 @@ class RepairFacadeTest implements SamplePartAndWorkTimeRequest {
         //then
         List<RepairResponse> allRepairs = repairFacade.getAllAwaitingRepairs();
         assertAll(
-                () -> assertThat(allRepairs.get(0).date()).isEqualTo(LocalDate.of(2022,5,6)),
-                () -> assertThat(allRepairs.get(1).date()).isEqualTo(LocalDate.of(2022,5,6)),
-                () -> assertThat(allRepairs.get(2).date()).isEqualTo(LocalDate.of(2022,5,6)),
-                () -> assertThat(allRepairs.get(3).date()).isEqualTo(LocalDate.of(2022,5,7))
+                () -> assertThat(allRepairs.get(0).date()).isEqualTo(LocalDate.of(2022, 5, 6)),
+                () -> assertThat(allRepairs.get(1).date()).isEqualTo(LocalDate.of(2022, 5, 6)),
+                () -> assertThat(allRepairs.get(2).date()).isEqualTo(LocalDate.of(2022, 5, 6)),
+                () -> assertThat(allRepairs.get(3).date()).isEqualTo(LocalDate.of(2022, 5, 7))
         );
     }
 
@@ -213,26 +235,26 @@ class RepairFacadeTest implements SamplePartAndWorkTimeRequest {
         //then
         List<RepairResponse> allRepairs = repairFacade.getAllAwaitingRepairs();
         assertAll(
-                () -> assertThat(allRepairs.get(0).date()).isEqualTo(LocalDate.of(2022,5,6)),
-                () -> assertThat(allRepairs.get(1).date()).isEqualTo(LocalDate.of(2022,5,6)),
-                () -> assertThat(allRepairs.get(2).date()).isEqualTo(LocalDate.of(2022,5,6)),
-                () -> assertThat(allRepairs.get(3).date()).isEqualTo(LocalDate.of(2022,5,7)),
-                () -> assertThat(allRepairs.get(4).date()).isEqualTo(LocalDate.of(2022,5,7)),
-                () -> assertThat(allRepairs.get(5).date()).isEqualTo(LocalDate.of(2022,5,7)),
-                () -> assertThat(allRepairs.get(6).date()).isEqualTo(LocalDate.of(2022,5,8)),
-                () -> assertThat(allRepairs.get(7).date()).isEqualTo(LocalDate.of(2022,5,8)),
-                () -> assertThat(allRepairs.get(8).date()).isEqualTo(LocalDate.of(2022,5,8)),
-                () -> assertThat(allRepairs.get(9).date()).isEqualTo(LocalDate.of(2022,5,9))
+                () -> assertThat(allRepairs.get(0).date()).isEqualTo(LocalDate.of(2022, 5, 6)),
+                () -> assertThat(allRepairs.get(1).date()).isEqualTo(LocalDate.of(2022, 5, 6)),
+                () -> assertThat(allRepairs.get(2).date()).isEqualTo(LocalDate.of(2022, 5, 6)),
+                () -> assertThat(allRepairs.get(3).date()).isEqualTo(LocalDate.of(2022, 5, 7)),
+                () -> assertThat(allRepairs.get(4).date()).isEqualTo(LocalDate.of(2022, 5, 7)),
+                () -> assertThat(allRepairs.get(5).date()).isEqualTo(LocalDate.of(2022, 5, 7)),
+                () -> assertThat(allRepairs.get(6).date()).isEqualTo(LocalDate.of(2022, 5, 8)),
+                () -> assertThat(allRepairs.get(7).date()).isEqualTo(LocalDate.of(2022, 5, 8)),
+                () -> assertThat(allRepairs.get(8).date()).isEqualTo(LocalDate.of(2022, 5, 8)),
+                () -> assertThat(allRepairs.get(9).date()).isEqualTo(LocalDate.of(2022, 5, 9))
         );
     }
 
     @Test
     void should_get_all_repairs_for_user() {
         //given
-        Long searchedUserId = 1L;
+        String searchedUsername = "user";
         sampleRepairScenarios.saveFourRepairsInDatabase();
         //when
-        List<RepairResponse> userRepairsResult = repairFacade.getUserRepairs(searchedUserId);
+        List<RepairResponse> userRepairsResult = repairFacade.getUserRepairs(searchedUsername);
         //then
         assertAll(
                 () -> assertThat(userRepairsResult).hasSize(2),
@@ -244,9 +266,10 @@ class RepairFacadeTest implements SamplePartAndWorkTimeRequest {
     @Test
     void should_return_empty_list_when_user_has_not_any_repairs() {
         //given
-        Long searchedUserId = 1L;
+        String searchedUsername = "user without repair";
+        sampleRepairScenarios.saveFourRepairsInDatabase();
         //when
-        List<RepairResponse> userRepairsResult = repairFacade.getUserRepairs(searchedUserId);
+        List<RepairResponse> userRepairsResult = repairFacade.getUserRepairs(searchedUsername);
         //then
         assertThat(userRepairsResult).isEmpty();
     }
@@ -285,9 +308,9 @@ class RepairFacadeTest implements SamplePartAndWorkTimeRequest {
     private void reportRepairsManyTimes(int quantity) {
         for (int i = 0; i < quantity; i++) {
             repairFacade.reportRepair(CreateRepairRequest.builder()
-                    .userId(1L)
                     .description("Description")
-                    .build());
+                    .build(),
+                    "user");
         }
     }
 

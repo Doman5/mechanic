@@ -7,6 +7,7 @@ import com.domanski.mechanic.domain.repair.dto.RepairResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -31,14 +32,16 @@ public class RepairController {
     }
 
     @PostMapping
-    public ResponseEntity<RepairReportResponse> reportRepair(@RequestBody @Valid CreateRepairRequest createRepairRequest) {
-        RepairReportResponse repairReportResponse = repairFacade.reportRepair(createRepairRequest);
+    public ResponseEntity<RepairReportResponse> reportRepair(
+            @RequestBody @Valid CreateRepairRequest createRepairRequest,
+            @AuthenticationPrincipal String username) {
+        RepairReportResponse repairReportResponse = repairFacade.reportRepair(createRepairRequest, username);
         return new ResponseEntity<>(repairReportResponse, HttpStatus.CREATED);
     }
 
-    @GetMapping("/users/{userId}")
-    public ResponseEntity<List<RepairResponse>> getUserRepairs(@PathVariable Long userId) {
-        List<RepairResponse> userRepairs = repairFacade.getUserRepairs(userId);
+    @GetMapping("/user")
+    public ResponseEntity<List<RepairResponse>> getUserRepairs(@AuthenticationPrincipal String username) {
+        List<RepairResponse> userRepairs = repairFacade.getUserRepairs(username);
         return ResponseEntity.ok(userRepairs);
     }
 }

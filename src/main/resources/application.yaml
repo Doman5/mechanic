@@ -13,6 +13,11 @@ app:
   repair:
     priceForOneWorkHour: 100.00
     maximumRepairPerDay: 3
+    scheduler:
+      delay: PT1H
 
 scheduling:
   enabled: true
+
+security:
+  secret: 2D4B6150645367566B597033733676397924423F4528482B4D6251655468576D

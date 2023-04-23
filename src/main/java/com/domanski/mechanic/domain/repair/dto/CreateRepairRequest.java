@@ -9,7 +9,5 @@ import javax.validation.constraints.NotNull;
 public record CreateRepairRequest(
         @NotBlank
         @NotNull
-        String description,
-        @NotNull
-        Long userId) {
+        String description) {
 }
