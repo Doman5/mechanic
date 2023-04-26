@@ -18,9 +18,13 @@ import com.domanski.mechanic.domain.repair.model.RepairPart;
 import com.domanski.mechanic.domain.repair.model.RepairStatus;
 import com.domanski.mechanic.domain.repair.repository.RepairPartRepository;
 import com.domanski.mechanic.domain.repair.repository.RepairRepository;
-import com.domanski.mechanic.domain.repair.utils.RepairCostCalculator;
-import com.domanski.mechanic.domain.repair.utils.RepairDateGenerator;
-import com.domanski.mechanic.domain.repair.utils.RepairUsedPartManager;
+import com.domanski.mechanic.domain.repair.service.RepairDateGeneratorService;
+import com.domanski.mechanic.domain.repair.service.RepairService;
+import com.domanski.mechanic.domain.repair.service.UserRepairService;
+import com.domanski.mechanic.domain.repair.service.utils.RepairCostCalculator;
+import com.domanski.mechanic.domain.repair.service.utils.RepairDateGenerator;
+import com.domanski.mechanic.domain.repair.service.utils.RepairUsedPartManager;
+import com.domanski.mechanic.domain.repair.service.WorkOnRepairService;
 import com.domanski.mechanic.infrastucture.loginandregister.controller.AuthenticationResponse;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -65,12 +69,16 @@ class RepairFacadeTest implements SamplePartAndWorkTimeRequest {
     };
     private final SampleRepairScenarios sampleRepairScenarios = new SampleRepairScenarios(repairRepository);
 
+    private final RepairService repairService = new RepairService(repairRepository);
+    private final WorkOnRepairService workOnRepairService = new WorkOnRepairService(repairRepository,repairUsedPartManager,repairCostCalculator);
+    private final RepairDateGeneratorService repairDateGeneratorService = new RepairDateGeneratorService(repairRepository, repairDateGenerator);
+    private final UserRepairService userRepairService = new UserRepairService(loginAndRegisterFacade, repairRepository);
+
     private final RepairFacade repairFacade = new RepairFacade(
-            repairRepository,
-            repairCostCalculator,
-            repairUsedPartManager,
-            repairDateGenerator,
-            loginAndRegisterFacade
+            repairService,
+            workOnRepairService,
+            repairDateGeneratorService,
+            userRepairService
     );
 
     @Test
@@ -92,7 +100,7 @@ class RepairFacadeTest implements SamplePartAndWorkTimeRequest {
         //given
         sampleRepairScenarios.saveFourRepairsInDatabase();
         //when
-        List<RepairResponse> allRepairs = repairFacade.getAllAwaitingRepairs();
+        List<RepairResponse> allRepairs = repairFacade.getAllRepairsByStatus(RepairStatus.AWAITING);
         //then
         assertThat(allRepairs).hasSize(4);
     }
@@ -101,7 +109,7 @@ class RepairFacadeTest implements SamplePartAndWorkTimeRequest {
     public void should_return_empty_list_when_are_not_any_repairs_in_database() {
         //given
         //when
-        List<RepairResponse> allRepairs = repairFacade.getAllAwaitingRepairs();
+        List<RepairResponse> allRepairs = repairFacade.getAllRepairsByStatus(RepairStatus.AWAITING);
         //then
         assertThat(allRepairs).hasSize(0);
     }
@@ -217,7 +225,7 @@ class RepairFacadeTest implements SamplePartAndWorkTimeRequest {
         //when
         repairFacade.generateAndSetRepairsDates();
         //then
-        List<RepairResponse> allRepairs = repairFacade.getAllAwaitingRepairs();
+        List<RepairResponse> allRepairs = repairFacade.getAllRepairsByStatus(RepairStatus.AWAITING);
         assertAll(
                 () -> assertThat(allRepairs.get(0).date()).isEqualTo(LocalDate.of(2022, 5, 6)),
                 () -> assertThat(allRepairs.get(1).date()).isEqualTo(LocalDate.of(2022, 5, 6)),
@@ -233,7 +241,7 @@ class RepairFacadeTest implements SamplePartAndWorkTimeRequest {
         //when
         repairFacade.generateAndSetRepairsDates();
         //then
-        List<RepairResponse> allRepairs = repairFacade.getAllAwaitingRepairs();
+        List<RepairResponse> allRepairs = repairFacade.getAllRepairsByStatus(RepairStatus.AWAITING);
         assertAll(
                 () -> assertThat(allRepairs.get(0).date()).isEqualTo(LocalDate.of(2022, 5, 6)),
                 () -> assertThat(allRepairs.get(1).date()).isEqualTo(LocalDate.of(2022, 5, 6)),

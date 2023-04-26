@@ -1,4 +1,4 @@
-package com.domanski.mechanic.domain.repair.utils;
+package com.domanski.mechanic.domain.repair.service.utils;
 
 import com.domanski.mechanic.domain.repair.dto.UsedPartResponse;
 import com.domanski.mechanic.domain.repair.dto.RepairResponse;

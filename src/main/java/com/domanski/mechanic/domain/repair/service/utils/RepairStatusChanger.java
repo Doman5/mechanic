@@ -1,4 +1,4 @@
-package com.domanski.mechanic.domain.repair.utils;
+package com.domanski.mechanic.domain.repair.service.utils;
 
 import com.domanski.mechanic.domain.repair.error.RepairStatusException;
 import com.domanski.mechanic.domain.repair.model.Repair;

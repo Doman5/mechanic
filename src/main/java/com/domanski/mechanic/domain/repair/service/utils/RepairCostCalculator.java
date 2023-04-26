@@ -1,4 +1,4 @@
-package com.domanski.mechanic.domain.repair.utils;
+package com.domanski.mechanic.domain.repair.service.utils;
 
 import com.domanski.mechanic.domain.repair.model.Repair;
 import lombok.AllArgsConstructor;
@@ -6,7 +6,8 @@ import lombok.AllArgsConstructor;
 import java.math.BigDecimal;
 
 @AllArgsConstructor
-public class RepairCostCalculator {
+public
+class RepairCostCalculator {
 
     private final double priceForOneWorkHour;
 

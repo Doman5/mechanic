@@ -3,6 +3,7 @@ package com.domanski.mechanic.infrastucture.repair.controller;
 import com.domanski.mechanic.domain.repair.RepairFacade;
 import com.domanski.mechanic.domain.repair.dto.PartsAndWorkTimeRequest;
 import com.domanski.mechanic.domain.repair.dto.RepairResponse;
+import com.domanski.mechanic.domain.repair.model.RepairStatus;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,7 +25,7 @@ public class MechanicController {
 
     @GetMapping
     public ResponseEntity<List<RepairResponse>> getAllAwaitingRepairs() {
-        List<RepairResponse> allRepairs = repairFacade.getAllAwaitingRepairs();
+        List<RepairResponse> allRepairs = repairFacade.getAllRepairsByStatus(RepairStatus.AWAITING);
         return ResponseEntity.ok(allRepairs);
     }
 
