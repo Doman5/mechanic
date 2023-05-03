@@ -8,6 +8,9 @@ spring:
   jpa:
     hibernate.ddl-auto: validate
     generate-ddl: true
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
 
 app:
   repair:

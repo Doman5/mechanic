@@ -25,6 +25,10 @@ public class SecurityConfiguration {
         http
                 .csrf().disable()
                 .authorizeHttpRequests()
+                .antMatchers("/swagger-ui/**").permitAll()
+                .antMatchers("/v3/api-docs").permitAll()
+                .antMatchers("/swagger-resources/**").permitAll()
+                .antMatchers("/webjars").permitAll()
                 .antMatchers("/login").permitAll()
                 .antMatchers("/register").permitAll()
                 .antMatchers("/parts/**").hasRole(UserRole.ROLE_MECHANIC.getAuthority())
