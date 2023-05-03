@@ -6,12 +6,7 @@ import com.domanski.mechanic.domain.repair.dto.RepairResponse;
 import com.domanski.mechanic.domain.repair.model.RepairStatus;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -24,8 +19,8 @@ public class MechanicController {
     private final RepairFacade repairFacade;
 
     @GetMapping
-    public ResponseEntity<List<RepairResponse>> getAllAwaitingRepairs() {
-        List<RepairResponse> allRepairs = repairFacade.getAllRepairsByStatus(RepairStatus.AWAITING);
+    public ResponseEntity<List<RepairResponse>> getAllRepairs(@RequestParam(defaultValue = "AWAITING") RepairStatus repairStatus) {
+        List<RepairResponse> allRepairs = repairFacade.getAllRepairsByStatus(repairStatus);
         return ResponseEntity.ok(allRepairs);
     }
 

@@ -75,13 +75,13 @@ public class TypicalScenarioUserWantToReportRepairAndMechanicRepairCarIntegratio
         // step 3: user tried to GET jwt token by requesting POST /login with username=someUser, password=somePassword and system returned UNAUTHORIZED(401).
         //given && when && then
         mockMvc.perform(post("/login")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("""
-                        {
-                        "username": "someUser",
-                        "password": "somePassword"
-                        }
-                        """.trim()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                "username": "someUser",
+                                "password": "somePassword"
+                                }
+                                """.trim()))
                 .andExpect(status().isUnauthorized());
 
 
@@ -89,10 +89,10 @@ public class TypicalScenarioUserWantToReportRepairAndMechanicRepairCarIntegratio
         mockMvc.perform(post("/repair")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                        {
-                        "description": "repair 1"
-                        }
-                        """.trim()))
+                                {
+                                "description": "repair 1"
+                                }
+                                """.trim()))
                 .andExpect(status().isForbidden());
 
 
@@ -486,7 +486,22 @@ public class TypicalScenarioUserWantToReportRepairAndMechanicRepairCarIntegratio
         assertThat(mechanicRepairsListAfterDoRepair).isEmpty();
 
 
-        // step 22: user twice made POST to /repairs with header"Authorization: Bearer "AAAA.BBBB.CCCC" and system returned CREATED(201) with reported repair with id 2000 and 3000.
+        // step 22: mechanic made GET /mechanic/repairs?repairStatus="FINISHED" with header"Authorization: Bearer "QQQQ.WWWW.EEEE" and return OK(200) with 1 repairs.
+        String performMechanicGetFinishedRepairsAfterDoRepairJson = mockMvc.perform(get("/mechanic/repairs")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + mechanicToken)
+                        .param("repairStatus", "FINISHED"))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+        List<RepairResponse> mechanicFinishedRepairsListAfterDoRepair = objectMapper.readValue(performMechanicGetFinishedRepairsAfterDoRepairJson, new TypeReference<>() {
+        });
+        //then
+        assertThat(mechanicFinishedRepairsListAfterDoRepair).hasSize(1);
+
+
+        // step 23: user twice made POST to /repairs with header"Authorization: Bearer "AAAA.BBBB.CCCC" and system returned CREATED(201) with reported repair with id 2000 and 3000.
         // given && when
         String performUserPostRepairReportSecondTimeJson = mockMvc.perform(post("/repairs").contentType(MediaType.APPLICATION_JSON)
                         .content("""
