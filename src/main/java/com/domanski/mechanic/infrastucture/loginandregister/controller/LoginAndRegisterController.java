@@ -3,7 +3,7 @@ package com.domanski.mechanic.infrastucture.loginandregister.controller;
 import com.domanski.mechanic.domain.loginandregister.LoginAndRegisterFacadeImpl;
 import com.domanski.mechanic.domain.loginandregister.dto.LoginRequest;
 import com.domanski.mechanic.domain.loginandregister.dto.RegisterRequest;
-import com.domanski.mechanic.infrastucture.security.jwt.AuthenticationService;
+import com.domanski.mechanic.infrastucture.security.AuthenticationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

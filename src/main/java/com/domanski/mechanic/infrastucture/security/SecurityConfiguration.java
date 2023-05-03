@@ -1,6 +1,7 @@
-package com.domanski.mechanic.infrastucture.security.jwt;
+package com.domanski.mechanic.infrastucture.security;
 
 import com.domanski.mechanic.domain.loginandregister.UserRole;
+import com.domanski.mechanic.infrastucture.security.jwt.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

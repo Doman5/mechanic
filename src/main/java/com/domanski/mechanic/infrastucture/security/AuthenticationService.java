@@ -1,4 +1,4 @@
-package com.domanski.mechanic.infrastucture.security.jwt;
+package com.domanski.mechanic.infrastucture.security;
 
 import com.domanski.mechanic.domain.jwt.JwtService;
 import com.domanski.mechanic.domain.loginandregister.LoginAndRegisterFacade;
